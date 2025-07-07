@@ -76,16 +76,16 @@ jobs:
       - name: "Print data"
         run: |
           echo "Got following data"
-          echo "pipelineList: ${{ pipelineList }}"
-          echo "profileList: ${{ profileList }}"
-          echo "agent: ${{ agent }}"
-          echo "architecture: ${{ architecture }}"
-          echo "strimzi_feature_gates: ${{ strimzi_feature_gates }}"
-          echo "strimzi_rbac_scope: ${{ strimzi_rbac_scope }}"
-          echo "cluster_operator_install_type: ${{ cluster_operator_install_type }}"
-          echo "parallel: ${{ parallel }}"
+          echo "pipelineList: $pipelineList"
+          echo "profileList: $profileList"
+          echo "agent: $agent"
+          echo "architecture: $architecture"
+          echo "strimzi_feature_gates: $strimzi_feature_gates"
+          echo "strimzi_rbac_scope: $strimzi_rbac_scope"
+          echo "cluster_operator_install_type: $cluster_operator_install_type"
+          echo "parallel: $parallel"
 
-        with:
+        env:
           pipelineList: ${{ needs.parse-params.outputs.pipelineList }}
           profileList: ${{ needs.parse-params.outputs.profileList }}
           agent: ${{ needs.parse-params.outputs.agent }}
