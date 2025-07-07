@@ -43,7 +43,7 @@ jobs:
   parse-params:
     needs:
       - should-run
-    if: ${{ needs.should-run.outputs.ok == 'true' && github.event_name == 'issue_comment' }}
+    if: ${{ needs.should-run.outputs.ok == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       runTests: ${{ steps.parse.outputs.runTests }}
