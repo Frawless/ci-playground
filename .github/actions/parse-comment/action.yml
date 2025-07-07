@@ -4,7 +4,21 @@ description: "Parses the comment to extract run flag, pipeline list, profile lis
 inputs:
   commentBody:
     description: "The body of the GitHub comment (or manual trigger text)"
-    required: true
+    required: false
+    default: ""
+
+  releaseVersion:
+    description: "Release version to test (i.e. 'latest', '0.46.0')"
+    required: false
+    default: "latest"
+  kafkaVersion:
+    description: "Kafka version. e.g. '4.0.0' or 'latest'"
+    required: false
+    default: "latest"
+  profile:
+    description: "Comma-separated or single profile name(s)"
+    required: false
+    default: ""
 
 outputs:
   runTests:
@@ -31,18 +45,39 @@ outputs:
   cluster_operator_install_type:
     description: "The parsed cluster_operator_install_type value"
     value: ${{ steps.parse.outputs.cluster_operator_install_type }}
+  kafkaVersion:
+    description: "Kafka version used for most of the tests"
+    value: ${{ steps.parse.outputs.kafkaVersion }}
+  releaseVersion:
+    description: "Release version a.k.a docker tag of released images"
+    value: ${{ steps.parse.outputs.releaseVersion }}
 
 runs:
   using: "composite"
   steps:
+    - name: Build Comment
+      id: build-comment
+      shell: bash
+      run: |
+        if [[ "${{ inputs.commentBody }}" == "" ]]; then
+          builtComment="/gha run profile=${{ inputs.profile }} kafkaVersion=${{ inputs.kafkaVersion }}"
+        else
+          builtComment="${{ inputs.commentBody }}"
+        fi
+        
+        # 2️⃣ Tell later jobs what the body is
+        echo "builtComment=$builtComment" >> "$GITHUB_OUTPUT"
+
     - name: Parse Comment
-      id: parse
+      id: parse-comment
+      needs:
+        - build-comment
       shell: bash
       run: |
         set -e
         
         # Read the comment body
-        COMMENT="${{ inputs.commentBody }}"
+        COMMENT="${{ needs.build-comment.outputs.builtComment }}"
         COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
         
         # Default values
@@ -107,6 +142,9 @@ runs:
           if echo "$COMMENT_LOWER" | grep -q "architecture="; then
             ARCH_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*architecture=\([^ ]*\).*/\1/p')
           fi
+          if echo "$COMMENT_LOWER" | grep -q "kafkaVersion="; then
+            KAFKA_VERSION=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaVersion=\([^ ]*\).*/\1/p')
+          fi
         fi
         
         # Output the collected values as simple comma-separated strings
@@ -119,6 +157,8 @@ runs:
         echo "strimzi_rbac_scope=$RBAC_VALUE" >> $GITHUB_OUTPUT
         echo "cluster_operator_install_type=$COI_VALUE" >> $GITHUB_OUTPUT
         echo "parallel=$PARALLEL_VALUE" >> $GITHUB_OUTPUT
+        echo "kafkaVersion=$KAFKA_VERSION >> $GITHUB_OUTPUT
+        echo "releaseVersion=${{ inputs.releaseVersion }} >> $GITHUB_OUTPUT
 
         echo "Parsed runTests: $RUN_TESTS"
         echo "Parsed pipelineList: $PIPELINE_LIST"
@@ -129,3 +169,5 @@ runs:
         echo "Parsed strimzi_rbac_scope: $RBAC_VALUE"
         echo "Parsed cluster_operator_install_type: $COI_VALUE"
         echo "Parsed parallel: $PARALLEL_VALUE"
+        echo "Parsed kafkaVersion: $KAFKA_VERSION"
+        echo "Parsed releaseVersion: $RELEASE_VERSION"
