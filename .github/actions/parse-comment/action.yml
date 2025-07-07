@@ -140,7 +140,9 @@ runs:
             ARCH_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*architecture=\([^ ]*\).*/\1/p')
           fi
           if echo "$COMMENT_LOWER" | grep -q "kafkaVersion="; then
-            KAFKA_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaVersion=\([^ ]*\).*/\1/p')
+            KAFKA_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaversion=\([^ ]*\).*/\1/p')
+          else
+            KAFKA_VERSION_VALUE="${{ inputs.kafkaVersion }}"
           fi
         fi
         
