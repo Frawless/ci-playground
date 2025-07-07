@@ -139,11 +139,17 @@ runs:
           if echo "$COMMENT_LOWER" | grep -q "architecture="; then
             ARCH_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*architecture=\([^ ]*\).*/\1/p')
           fi
-          if echo "$COMMENT_LOWER" | grep -q "kafkaVersion="; then
+          if echo "$COMMENT_LOWER" | grep -q "kafkaversion="; then
             KAFKA_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaversion=\([^ ]*\).*/\1/p')
           else
-            KAFKA_VERSION_VALUE="${{ inputs.kafkaVersion }}"
+            KAFKA_VERSION_VALUE="latest"
           fi
+        fi
+        
+        # Set releaseVersion to latest if it was passed empty from event
+        RELEASE_VERSION_VALUE="${{ inputs.releaseVersion }}"
+        if [ -z "$RELEASE_VERSION_VALUE" ]; then
+          RELEASE_VERSION_VALUE="latest"
         fi
         
         # Output the collected values as simple comma-separated strings
@@ -157,7 +163,7 @@ runs:
         echo "cluster_operator_install_type=$COI_VALUE" >> $GITHUB_OUTPUT
         echo "parallel=$PARALLEL_VALUE" >> $GITHUB_OUTPUT
         echo "kafkaVersion=$KAFKA_VERSION_VALUE" >> $GITHUB_OUTPUT
-        echo "releaseVersion=${{ inputs.releaseVersion }}" >> $GITHUB_OUTPUT
+        echo "releaseVersion=$RELEASE_VERSION_VALUE" >> $GITHUB_OUTPUT
 
         echo "Parsed runTests: $RUN_TESTS"
         echo "Parsed pipelineList: $PIPELINE_LIST"
@@ -169,4 +175,4 @@ runs:
         echo "Parsed cluster_operator_install_type: $COI_VALUE"
         echo "Parsed parallel: $PARALLEL_VALUE"
         echo "Parsed kafkaVersion: $KAFKA_VERSION_VALUE"
-        echo "Parsed releaseVersion: ${{ inputs.releaseVersion }}"
+        echo "Parsed releaseVersion: $RELEASE_VERSION_VALUE"
