@@ -65,7 +65,6 @@ runs:
           builtComment="${{ inputs.commentBody }}"
         fi
         
-        # 2️⃣ Tell later jobs what the body is
         echo "builtComment=$builtComment" >> "$GITHUB_OUTPUT"
 
     - name: Parse Comment
@@ -141,7 +140,7 @@ runs:
             ARCH_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*architecture=\([^ ]*\).*/\1/p')
           fi
           if echo "$COMMENT_LOWER" | grep -q "kafkaVersion="; then
-            KAFKA_VERSION=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaVersion=\([^ ]*\).*/\1/p')
+            KAFKA_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaVersion=\([^ ]*\).*/\1/p')
           fi
         fi
         
@@ -155,7 +154,7 @@ runs:
         echo "strimzi_rbac_scope=$RBAC_VALUE" >> $GITHUB_OUTPUT
         echo "cluster_operator_install_type=$COI_VALUE" >> $GITHUB_OUTPUT
         echo "parallel=$PARALLEL_VALUE" >> $GITHUB_OUTPUT
-        echo "kafkaVersion=$KAFKA_VERSION >> $GITHUB_OUTPUT
+        echo "kafkaVersion=$KAFKA_VERSION_VALUE >> $GITHUB_OUTPUT
         echo "releaseVersion=${{ inputs.releaseVersion }} >> $GITHUB_OUTPUT
 
         echo "Parsed runTests: $RUN_TESTS"
@@ -167,5 +166,5 @@ runs:
         echo "Parsed strimzi_rbac_scope: $RBAC_VALUE"
         echo "Parsed cluster_operator_install_type: $COI_VALUE"
         echo "Parsed parallel: $PARALLEL_VALUE"
-        echo "Parsed kafkaVersion: $KAFKA_VERSION"
-        echo "Parsed releaseVersion: $RELEASE_VERSION"
+        echo "Parsed kafkaVersion: $KAFKA_VERSION_VALUE"
+        echo "Parsed releaseVersion: ${{ inputs.releaseVersion }}"
