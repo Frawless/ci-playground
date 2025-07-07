@@ -23,34 +23,34 @@ inputs:
 outputs:
   runTests:
     description: "true/false value if tests should be run"
-    value: ${{ steps.parse.outputs.runTests }}
+    value: ${{ steps.parse_comment.outputs.runTests }}
   pipelineList:
     description: "Comma-separated list of pipeline names (if provided)"
-    value: ${{ steps.parse.outputs.pipelineList }}
+    value: ${{ steps.parse_comment.outputs.pipelineList }}
   profileList:
     description: "Comma-separated list of profile names (fallback if pipeline is not provided)"
-    value: ${{ steps.parse.outputs.profileList }}
+    value: ${{ steps.parse_comment.outputs.profileList }}
   agent:
     description: "The parsed agent value from the comment"
-    value: ${{ steps.parse.outputs.agent }}
+    value: ${{ steps.parse_comment.outputs.agent }}
   architecture:
     description: "The parsed architecture value from the comment"
-    value: ${{ steps.parse.outputs.architecture }}
+    value: ${{ steps.parse_comment.outputs.architecture }}
   strimzi_feature_gates:
     description: "The parsed strimzi_feature_gates value"
-    value: ${{ steps.parse.outputs.strimzi_feature_gates }}
+    value: ${{ steps.parse_comment.outputs.strimzi_feature_gates }}
   strimzi_rbac_scope:
     description: "The parsed strimzi_rbac_scope value"
-    value: ${{ steps.parse.outputs.strimzi_rbac_scope }}
+    value: ${{ steps.parse_comment.outputs.strimzi_rbac_scope }}
   cluster_operator_install_type:
     description: "The parsed cluster_operator_install_type value"
-    value: ${{ steps.parse.outputs.cluster_operator_install_type }}
+    value: ${{ steps.parse_comment.outputs.cluster_operator_install_type }}
   kafkaVersion:
     description: "Kafka version used for most of the tests"
-    value: ${{ steps.parse.outputs.kafkaVersion }}
+    value: ${{ steps.parse_comment.outputs.kafkaVersion }}
   releaseVersion:
     description: "Release version a.k.a docker tag of released images"
-    value: ${{ steps.parse.outputs.releaseVersion }}
+    value: ${{ steps.parse_comment.outputs.releaseVersion }}
 
 runs:
   using: "composite"

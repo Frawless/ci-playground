@@ -64,9 +64,9 @@ jobs:
         uses: ./.github/actions/parse-comment
         with:
           commentBody: ${{ github.event.comment.body }}
-          releaseVersion: ${{ inputs.releaseVersion }}
-          kafkaVersion: ${{ inputs.kafkaVersion }}
-          profile: ${{ inputs.profile }}
+          releaseVersion: ${{ github.event.inputs.releaseVersion }}
+          kafkaVersion: ${{ github.event.inputs.kafkaVersion }}
+          profile: ${{ github.event.inputs.profile }}
 
   print-data:
     name: print
