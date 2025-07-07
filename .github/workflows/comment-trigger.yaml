@@ -70,12 +70,37 @@ jobs:
           kafkaVersion: ${{ github.event.inputs.kafkaVersion }}
           profile: ${{ github.event.inputs.profile }}
 
+  build-artifacts:
+    name: dependency
+    needs:
+      - should-run
+      - parse-params
+    if: needs.should-run.outputs.ok == 'true' && needs.parse-params.outputs.releaseVersion == 'latest'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Dummy step"
+        run: |
+          echo "Got following data"
+
+  build-images:
+    name: build-images
+    needs:
+      - should-run
+      - parse-params
+      - build-artifacts
+    if: needs.should-run.outputs.ok == 'true' && needs.parse-params.outputs.releaseVersion == 'latest' && needs.build-artifacts.result != 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Dummy step"
+        run: |
+          echo "Got following data"
+
   print-data:
     name: print
     needs:
       - should-run
       - parse-params
-    if: needs.should-run.outputs.ok == 'true'
+    if: needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure'
     runs-on: ubuntu-latest
     steps:
       - name: "Print data"
