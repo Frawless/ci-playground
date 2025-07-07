@@ -154,8 +154,8 @@ runs:
         echo "strimzi_rbac_scope=$RBAC_VALUE" >> $GITHUB_OUTPUT
         echo "cluster_operator_install_type=$COI_VALUE" >> $GITHUB_OUTPUT
         echo "parallel=$PARALLEL_VALUE" >> $GITHUB_OUTPUT
-        echo "kafkaVersion=$KAFKA_VERSION_VALUE >> $GITHUB_OUTPUT
-        echo "releaseVersion=${{ inputs.releaseVersion }} >> $GITHUB_OUTPUT
+        echo "kafkaVersion=$KAFKA_VERSION_VALUE" >> $GITHUB_OUTPUT
+        echo "releaseVersion=${{ inputs.releaseVersion }}" >> $GITHUB_OUTPUT
 
         echo "Parsed runTests: $RUN_TESTS"
         echo "Parsed pipelineList: $PIPELINE_LIST"
