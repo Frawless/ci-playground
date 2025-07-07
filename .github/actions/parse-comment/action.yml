@@ -56,7 +56,7 @@ runs:
   using: "composite"
   steps:
     - name: Build Comment
-      id: build-comment
+      id: build_comment
       shell: bash
       run: |
         if [[ "${{ inputs.commentBody }}" == "" ]]; then
@@ -69,15 +69,13 @@ runs:
         echo "builtComment=$builtComment" >> "$GITHUB_OUTPUT"
 
     - name: Parse Comment
-      id: parse-comment
-      needs:
-        - build-comment
+      id: parse_comment
       shell: bash
       run: |
         set -e
         
         # Read the comment body
-        COMMENT="${{ needs.build-comment.outputs.builtComment }}"
+        COMMENT="${{ steps.build_comment.outputs.builtComment }}"
         COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
         
         # Default values
