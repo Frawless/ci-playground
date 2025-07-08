@@ -101,7 +101,7 @@ jobs:
       - should-run
       - parse-params
       - build-images
-    if: ${{ needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
+    if: ${{ always() && needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
 #    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
