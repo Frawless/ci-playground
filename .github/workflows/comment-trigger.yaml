@@ -26,9 +26,6 @@ jobs:
   # Check if the comment contains "/gha run" at all.
   # If not, don't even bother with parse-params job.
   parse-params:
-    needs:
-      - should-run
-    if: ${{ needs.should-run.outputs.shouldRun == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       runTests: ${{ steps.parse.outputs.runTests }}
