@@ -101,8 +101,8 @@ jobs:
       - should-run
       - parse-params
       - build-images
-#    if: ${{ needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
-    if: ${{ always() }}
+    if: ${{ needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
+#    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: "Print data"
@@ -121,6 +121,7 @@ jobs:
           
           echo "Results:"
           echo "${{ needs.build-images.result }}"
+          echo "${{ needs.should-run.outputs.ok }}"
 
         env:
           pipelineList: ${{ needs.parse-params.outputs.pipelineList }}
