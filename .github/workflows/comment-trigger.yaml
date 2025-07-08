@@ -48,7 +48,6 @@ jobs:
         id: parse
         uses: ./.github/actions/parse-comment
         with:
-          context: ${{ github }}
           releaseVersion: ${{ github.event.inputs.releaseVersion }}
           kafkaVersion: ${{ github.event.inputs.kafkaVersion }}
           profile: ${{ github.event.inputs.profile }}
