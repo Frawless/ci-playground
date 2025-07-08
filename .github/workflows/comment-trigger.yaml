@@ -23,27 +23,12 @@ on:
   # pull_request:
 
 jobs:
-  should-run:
-    runs-on: ubuntu-latest
-    outputs:
-      ok: ${{ steps.set.outputs.ok }}
-    steps:
-      - id: set
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          elif echo "${{ github.event.comment.body }}" | grep -qiE '/gha\s+run'; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          fi
-
   # Check if the comment contains "/gha run" at all.
   # If not, don't even bother with parse-params job.
   parse-params:
     needs:
       - should-run
-    if: ${{ needs.should-run.outputs.ok == 'true' }}
+    if: ${{ needs.should-run.outputs.shouldRun == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       runTests: ${{ steps.parse.outputs.runTests }}
@@ -57,6 +42,7 @@ jobs:
       parallel: ${{ steps.parse.outputs.parallel }}
       kafkaVersion: ${{ steps.parse.outputs.kafkaVersion }}
       releaseVersion: ${{ steps.parse.outputs.releaseVersion }}
+      shouldRun: ${{ steps.parse.outputs.shouldRun }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,7 +51,7 @@ jobs:
         id: parse
         uses: ./.github/actions/parse-comment
         with:
-          commentBody: ${{ github.event.comment.body }}
+          context: ${{ github }}
           releaseVersion: ${{ github.event.inputs.releaseVersion }}
           kafkaVersion: ${{ github.event.inputs.kafkaVersion }}
           profile: ${{ github.event.inputs.profile }}
@@ -73,9 +59,8 @@ jobs:
   build-artifacts:
     name: build-artifacts
     needs:
-      - should-run
       - parse-params
-    if: needs.should-run.outputs.ok == 'true' && needs.parse-params.outputs.releaseVersion == 'latest'
+    if: needs.parse-params.outputs.shouldRun == 'true' && needs.parse-params.outputs.releaseVersion == 'latest'
     runs-on: ubuntu-latest
     steps:
       - name: "Dummy step"
@@ -85,10 +70,9 @@ jobs:
   build-images:
     name: build-images
     needs:
-      - should-run
       - parse-params
       - build-artifacts
-    if: needs.should-run.outputs.ok == 'true' && needs.parse-params.outputs.releaseVersion == 'latest' && needs.build-artifacts.result != 'failure'
+    if: needs.parse-params.outputs.shouldRun == 'true' && needs.parse-params.outputs.releaseVersion == 'latest' && needs.build-artifacts.result != 'failure'
     runs-on: ubuntu-latest
     steps:
       - name: "Dummy step"
@@ -98,10 +82,9 @@ jobs:
   print-data:
     name: print
     needs:
-      - should-run
       - parse-params
       - build-images
-    if: ${{ always() && needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
+    if: ${{ always() && needs.parse-params.outputs.shouldRun == 'true' && needs.build-images.result != 'failure' }}
 #    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:

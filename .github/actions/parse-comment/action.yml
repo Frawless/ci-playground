@@ -2,8 +2,8 @@ name: "Parse Comment Config"
 description: "Parses the comment to extract run flag, pipeline list, profile list, and additional configuration fields."
 
 inputs:
-  commentBody:
-    description: "The body of the GitHub comment (or manual trigger text)"
+  context:
+    description: "Whole github context"
     required: false
     default: ""
 
@@ -55,14 +55,26 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Should Run
+      id: should_run
+      shell: bash
+      run: |
+        if [[ "${{ inputs.context.event_name }}" == "workflow_dispatch" ]]; then
+          echo "shouldRun=true" >> "$GITHUB_OUTPUT"
+        elif echo "${{ inputs.context.event.comment.body }}" | grep -qiE '/gha\s+run'; then
+          echo "shouldRun=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "shouldRun=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Build Comment
       id: build_comment
       shell: bash
       run: |
-        if [[ "${{ inputs.commentBody }}" == "" ]]; then
+        if [[ "${{ inputs.context.event.comment.body }}" == "" ]]; then
           builtComment="/gha run profile=${{ inputs.profile }} kafkaVersion=${{ inputs.kafkaVersion }}"
         else
-          builtComment="${{ inputs.commentBody }}"
+          builtComment="${{ inputs.context.event.comment.body }}"
         fi
         
         echo "builtComment=$builtComment" >> "$GITHUB_OUTPUT"
