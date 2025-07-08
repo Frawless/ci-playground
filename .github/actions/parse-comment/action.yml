@@ -6,7 +6,6 @@ inputs:
     description: "Whole github context"
     required: false
     default: ""
-
   releaseVersion:
     description: "Release version to test (i.e. 'latest', '0.46.0')"
     required: false
@@ -51,6 +50,9 @@ outputs:
   releaseVersion:
     description: "Release version a.k.a docker tag of released images"
     value: ${{ steps.parse_comment.outputs.releaseVersion }}
+  shouldRun:
+    description: "Should Run"
+    value: ${{ steps.should_run.outputs.shouldRun }}
 
 runs:
   using: "composite"
