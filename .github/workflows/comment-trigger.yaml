@@ -71,7 +71,7 @@ jobs:
           profile: ${{ github.event.inputs.profile }}
 
   build-artifacts:
-    name: dependency
+    name: build-artifacts
     needs:
       - should-run
       - parse-params
@@ -101,7 +101,8 @@ jobs:
       - should-run
       - parse-params
       - build-images
-    if: needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure'
+#    if: ${{ needs.should-run.outputs.ok == 'true' && needs.build-images.result != 'failure' }}
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: "Print data"
@@ -117,6 +118,9 @@ jobs:
           echo "parallel: $parallel"
           echo "releaseVersion: $releaseVersion"
           echo "kafkaVersion: $kafkaVersion"
+          
+          echo "Results:"
+          echo "${{ needs.build-images.result }}"
 
         env:
           pipelineList: ${{ needs.parse-params.outputs.pipelineList }}
