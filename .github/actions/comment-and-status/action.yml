@@ -83,6 +83,12 @@ runs:
         
             if (existing) {
               runId = existing.id;
+              // Restart state for the check
+              await github.rest.checks.update({
+                owner, repo, check_run_id: runId,
+                status: 'in_progress',
+                conclusion: null
+              });
             } else {
               const created = await github.rest.checks.create({
                 owner, repo,
