@@ -44,18 +44,18 @@ runs:
           //------------------------------------------------------------------
           // 1) Work out PR number & HEAD SHA
           //------------------------------------------------------------------
-          if (github.context.payload.pull_request) {
-            prNumber = github.context.payload.pull_request.number;
-            sha    ||= github.context.payload.pull_request.head.sha;
-          } else if (github.context.payload.issue?.pull_request) {
-            prNumber = github.context.payload.issue.number;
+          if (context.payload.pull_request) {
+            prNumber = context.payload.pull_request.number;
+            sha    ||= context.payload.pull_request.head.sha;
+          } else if (context.payload.issue?.pull_request) {
+            prNumber = context.payload.issue.number;
             if (!sha) {
               const pr = await github.request(
-                github.context.payload.issue.pull_request.url);
+                context.payload.issue.pull_request.url);
               sha = pr.data.head.sha;
             }
           } else {
-            sha ||= github.context.sha;
+            sha ||= context.sha;
           }
 
           //------------------------------------------------------------------
