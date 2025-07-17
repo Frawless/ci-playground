@@ -25,15 +25,21 @@ runs:
       id: do-work
       uses: actions/github-script@v7
       with:
+        # 👇 forward every composite input
+        message: ${{ inputs.message }}
+        state: ${{ inputs.state }}
+        context: ${{ inputs.context }}
+        statusDescription: ${{ inputs.statusDescription }}
+        sha: ${{ inputs.sha }}
+
         script: |
           const {owner, repo} = context.repo;
 
-          // ---------- gather inputs ----------
-          const msg        = process.env.INPUT_MESSAGE?.trim() || '(no message)';
-          const state      = process.env.INPUT_STATE  || 'success';
-          const statusCtx  = process.env.INPUT_CONTEXT || 'custom/check';
-          const statusDesc = process.env.INPUT_STATUSDESCRIPTION || '';
-          let   commitSha  = process.env.INPUT_SHA || '';
+          const msg        = core.getInput('message');
+          const stateIn    = core.getInput('state');
+          const statusCtx  = core.getInput('context');
+          const statusDesc = core.getInput('statusDescription');
+          let   commitSha  = core.getInput('sha') || github.context.sha;
           let   prNumber    = undefined;
 
           // ---------- work out PR number & SHA ----------
