@@ -26,8 +26,9 @@ jobs:
   check-rights:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
+      checks: write
     steps:
       - uses: frawless/ci-playground/.github/actions/check-permissions@main
 
@@ -141,6 +142,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
 

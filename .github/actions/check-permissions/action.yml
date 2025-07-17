@@ -15,7 +15,7 @@ runs:
         script: |
           const {owner, repo} = context.repo;
           const actor = process.env.GITHUB_ACTOR;
-          const team  = core.getInput('team');
+          const team  = process.env.INPUT_TEAM || '';
           const denial = '⚠️  You don’t have permission to run this workflow.';
 
           //------------------------------------------------------------------

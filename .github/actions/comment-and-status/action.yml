@@ -29,11 +29,11 @@ runs:
           const {owner, repo} = context.repo;
 
           // ---------- gather inputs ----------
-          const msg         = core.getInput('message');
-          const state       = core.getInput('state');       // success|failure|pending|error
-          const statusCtx   = core.getInput('context');
-          const statusDesc  = core.getInput('statusDescription');
-          let   commitSha   = core.getInput('sha');         // may be blank
+          const msg        = process.env.INPUT_MESSAGE?.trim() || '(no message)';
+          const state      = process.env.INPUT_STATE  || 'success';
+          const statusCtx  = process.env.INPUT_CONTEXT || 'custom/check';
+          const statusDesc = process.env.INPUT_STATUSDESCRIPTION || '';
+          let   commitSha  = process.env.INPUT_SHA || '';
           let   prNumber    = undefined;
 
           // ---------- work out PR number & SHA ----------
@@ -62,18 +62,45 @@ runs:
             core.warning('No PR context – comment skipped');
           }
 
-          // ---------- 2) create / update commit status ----------
-          await github.rest.repos.createCommitStatus({
-            owner, repo,
-            sha: commitSha,
-            state,
-            context: statusCtx,
-            description: statusDesc,
-            target_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
-          });
-          core.info(`Status “${statusCtx}” set to "${state}" on ${commitSha}`);
-        message:           ${{ inputs.message }}
-        state:             ${{ inputs.state }}
-        context:           ${{ inputs.context }}
-        statusDescription: ${{ inputs.statusDescription }}
-        sha:               ${{ inputs.sha }}
+          // ------------------------------------------------------------
+          // 2) Create or update a check-run
+          // ------------------------------------------------------------
+          try {
+            // 2.1 create the run if it doesn't exist yet
+            const runName = statusCtx;
+            let runId;
+        
+            // try to find an existing check-run on this SHA with that name
+            const checks = await github.rest.checks.listForRef({
+              owner, repo, ref: commitSha
+            });
+            const existing = checks.data.check_runs.find(cr => cr.name === runName);
+        
+            if (existing) {
+              runId = existing.id;
+            } else {
+              const created = await github.rest.checks.create({
+                owner, repo,
+                name: runName,
+                head_sha: commitSha,
+                status: 'in_progress'
+              });
+              runId = created.data.id;
+            }
+        
+            // 2.2 finish the run with the desired conclusion
+            const conclusion = { success:'success', failure:'failure', pending:'in_progress', error:'neutral' }[state] || 'neutral';
+          
+            await github.rest.checks.update({
+              owner, repo, check_run_id: runId,
+              status: conclusion === 'in_progress' ? 'in_progress' : 'completed',
+              conclusion: conclusion === 'in_progress' ? undefined : conclusion,
+              output: {
+                title: runName,
+                summary: statusDesc || msg || '(no details)'
+              },
+              details_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+            });
+          } catch (e) {
+            core.warning(`Could not create/update check-run: ${e.message}`);
+          }
