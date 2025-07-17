@@ -146,8 +146,7 @@ jobs:
       - name: Comment + status
         uses: ./.github/actions/comment-and-status
         with:
-          message: |
-            :tada: Build finished!  (triggered by ${{ github.event_name }})
+          message: ":tada: Build finished!  (triggered by ${{ github.event_name }})"
           state: ${{ needs.print-data.outputs.state }}
           context: "our-e2e-workflow"
           description: "Double check"
