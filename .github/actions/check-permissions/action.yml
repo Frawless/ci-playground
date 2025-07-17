@@ -14,42 +14,45 @@ runs:
       with:
         script: |
           const {owner, repo} = context.repo;
-          const actor  = process.env.GITHUB_ACTOR;
-          const team   = core.getInput('team');
-          const denial = "⚠️ You don’t have permission to run this workflow. Please ask a maintainer to trigger it for you.";
+          const actor = process.env.GITHUB_ACTOR;
+          const team  = core.getInput('team');
+          const denial = '⚠️  You don’t have permission to run this workflow.';
 
           //------------------------------------------------------------------
-          // 1) Must be an org member
+          // 1) Check collaborator permission (works for user *and* org repos)
           //------------------------------------------------------------------
+          const perm = (await github.rest.repos.getCollaboratorPermissionLevel({
+            owner, repo, username: actor
+          })).data.permission;                // admin | maintain | write | triage | read | none
+
+          if (['admin', 'maintain', 'write'].includes(perm)) {
+            core.info(`${actor} has ${perm} permission → authorised ✅`);
+            return;
+          }
+          
+          //------------------------------------------------------------------
+          // 2) Repo is under an organisation?  Then allow specific team members
+          //------------------------------------------------------------------
+          if (context.payload.repository.owner.type === 'Organization') {
+            try {
+              await github.rest.teams.getMembershipForUserInOrg({
+                org: owner,
+                team_slug: team,
+                username: actor
+              });
+              core.info(`${actor} is in org team “${team}” → authorised ✅`);
+              return;
+            } catch (_) {
+              core.info(`${actor} is not in team “${team}”.`);
+            }
+          }
+          
           let orgMember = true;
           try {
             await github.rest.orgs.getMembershipForUser({org: owner, username: actor});
-          } catch (_) { orgMember = false; }
-
-          //------------------------------------------------------------------
-          // 2) Either write-plus on repo OR membership in the trusted team
-          //------------------------------------------------------------------
-          let hasWrite = false;
-          if (orgMember) {
-            const perm = (await github.rest.repos.getCollaboratorPermissionLevel({
-              owner, repo, username: actor
-            })).data.permission;
-            hasWrite = ['admin','maintain','write'].includes(perm);
-
-            if (!hasWrite) {
-              // look for team membership
-              try {
-                await github.rest.teams.getMembershipForUserInOrg({
-                  org: owner, team_slug: team, username: actor
-                });
-                hasWrite = true;
-              } catch (_) {/* not in team */}
-            }
-          }
-
-          if (orgMember && hasWrite) {
-            core.info(`${actor} authorised ✅`);
-            return; // success
+            core.info(`${actor} is in org” → authorised ✅`);
+          } catch (_) { 
+            core.info(`${actor} is not in org “${owner}”.`); 
           }
 
           //------------------------------------------------------------------
