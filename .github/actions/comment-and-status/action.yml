@@ -39,7 +39,7 @@ runs:
           const stateIn    = core.getInput('state');
           const statusCtx  = core.getInput('context');
           const statusDesc = core.getInput('statusDescription');
-          let   commitSha  = core.getInput('sha') || github.context.sha;
+          let   commitSha  = core.getInput('sha') || '';
           let   prNumber    = undefined;
 
           // ---------- work out PR number & SHA ----------
