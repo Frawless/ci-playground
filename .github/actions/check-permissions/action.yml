@@ -5,9 +5,6 @@ inputs:
   team:
     description: "Name of the team that contains trusted contributors"
     default: "contributors"
-  fail_message:
-    description: "Issue-comment body when the check fails"
-    default: "⚠️ You don’t have permission to run this workflow. Please ask a maintainer to trigger it for you."
 
 runs:
   using: composite
@@ -19,7 +16,7 @@ runs:
           const {owner, repo} = context.repo;
           const actor  = process.env.GITHUB_ACTOR;
           const team   = core.getInput('team');
-          const denial = core.getInput('fail_message');
+          const denial = "⚠️ You don’t have permission to run this workflow. Please ask a maintainer to trigger it for you.";
 
           //------------------------------------------------------------------
           // 1) Must be an org member

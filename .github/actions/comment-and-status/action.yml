@@ -32,7 +32,7 @@ runs:
           const msg         = core.getInput('message');
           const state       = core.getInput('state');       // success|failure|pending|error
           const statusCtx   = core.getInput('context');
-          const statusDesc  = core.getInput('description');
+          const statusDesc  = core.getInput('statusDescription');
           let   commitSha   = core.getInput('sha');         // may be blank
           let   prNumber    = undefined;
 
