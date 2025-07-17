@@ -29,10 +29,12 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: ./.github/actions/check-permissions@main
+      - uses: frawless/ci-playground/.github/actions/check-permissions@main
+
+      - uses: actions/checkout@v4
 
       - name: Set commit status ➜ pending
-        uses: ./.github/actions/comment-and-status@main
+        uses: ./.github/actions/comment-and-status
         with:
           message: ':hourglass_flowing_sand: CI started…'
           context: "our-e2e-workflow"
