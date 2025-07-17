@@ -86,8 +86,7 @@ runs:
               // Restart state for the check
               await github.rest.checks.update({
                 owner, repo, check_run_id: runId,
-                status: 'in_progress',
-                conclusion: null
+                status: 'in_progress'
               });
             } else {
               const created = await github.rest.checks.create({
@@ -103,20 +102,22 @@ runs:
             const conclusion = { 
               success: 'success', 
               failure: 'failure', 
-              pending:'in_progress', 
-              error:'neutral' 
+              pending: 'in_progress', 
+              error: 'neutral' 
             }[jobState] || 'neutral';
           
-            await github.rest.checks.update({
-              owner, repo, check_run_id: runId,
-              status: conclusion === 'in_progress' ? 'in_progress' : 'completed',
-              conclusion: conclusion === 'in_progress' ? undefined : conclusion,
-              output: {
-                title: runName,
-                summary: statusDesc || msg || '(no details)'
-              },
-              details_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
-            });
+            if (conclusion !== 'in_progress') {
+              await github.rest.checks.update({
+                owner, repo, check_run_id: runId,
+                status: 'completed',
+                conclusion: conclusion,
+                output: {
+                  title: runName,
+                  summary: statusDesc || msg || '(no details)'
+                },
+                details_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+              });
+            }
           } catch (e) {
             core.warning(`Could not create/update check-run: ${e.message}`);
           }
