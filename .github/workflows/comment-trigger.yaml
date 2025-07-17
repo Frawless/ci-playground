@@ -23,10 +23,20 @@ on:
   # pull_request:
 
 jobs:
+  check-rights:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: ./.github/actions/assert-authorized@main
+
   # Check if the comment contains "/gha run" at all.
   # If not, don't even bother with parse-params job.
   parse-params:
     runs-on: ubuntu-latest
+    needs:
+      - check-rights
     outputs:
       runTests: ${{ steps.parse.outputs.runTests }}
       pipelineList: ${{ steps.parse.outputs.pipelineList }}
@@ -81,7 +91,6 @@ jobs:
       - parse-params
       - build-images
     if: ${{ always() && needs.parse-params.outputs.shouldRun == 'true' && needs.build-images.result != 'failure' }}
-#    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: "Print data"
@@ -113,3 +122,23 @@ jobs:
           parallel: ${{ needs.parse-params.outputs.parallel }}
           releaseVersion: ${{ needs.parse-params.outputs.releaseVersion }}
           kafkaVersion: ${{ needs.parse-params.outputs.kafkaVersion }}
+
+  report:
+    if: ${{ always() }}
+    needs:
+      - print
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comment + status
+        uses: ./.github/actions/comment-and-status
+        with:
+          message: |
+            :tada: Build finished!  (triggered by ${{ github.event_name }})
+          state: success
+          context: "our-e2e-workflow"
+          description: "Double check"

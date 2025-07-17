@@ -1,0 +1,75 @@
+name: Comment and Status
+description: "Posts a comment on the pull-request and sets a commit status on the given (or auto-detected) SHA."
+
+inputs:
+  message:
+    description: "Message that will be put as a comment"
+    required: true
+  state:
+    description: "Commit-status state: error, failure, pending, or success"
+    default: success
+  context:
+    description: "Status-line “context” label (appears in the PR UI)"
+    default: custom/check
+  statusDescription:
+    description: "Short description that shows next to the status (optional)"
+    default: ''
+  sha:
+    description: "Commit SHA to attach the status to (optional – auto-detected)"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Add comment & set status
+      id: do-work
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const core    = require('@actions/core');
+          const {owner, repo} = context.repo;
+
+          // ---------- gather inputs ----------
+          const msg         = core.getInput('message');
+          const state       = core.getInput('state');       // success|failure|pending|error
+          const statusCtx   = core.getInput('context');
+          const statusDesc  = core.getInput('description');
+          let   commitSha   = core.getInput('sha');         // may be blank
+          let   prNumber    = undefined;
+
+          // ---------- work out PR number & SHA ----------
+          if (context.payload.pull_request) {
+            prNumber  = context.payload.pull_request.number;
+            commitSha = commitSha || context.payload.pull_request.head.sha;
+          } else if (context.payload.issue?.pull_request) { // e.g. issue_comment event
+            prNumber = context.payload.issue.number;
+            if (!commitSha) {
+              const pr = await github.request(context.payload.issue.pull_request.url);
+              commitSha = pr.data.head.sha;
+            }
+          } else {                                          // push / workflow_dispatch, etc.
+            commitSha = commitSha || context.sha;
+          }
+
+          // ---------- 1) create PR comment (if we have a PR) ----------
+          if (prNumber) {
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: prNumber,
+              body: msg
+            });
+            core.info(`Comment posted to PR #${prNumber}`);
+          } else {
+            core.warning('No PR context – comment skipped');
+          }
+
+          // ---------- 2) create / update commit status ----------
+          await github.rest.repos.createCommitStatus({
+            owner, repo,
+            sha: commitSha,
+            state,
+            context: statusCtx,
+            description: statusDesc,
+            target_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+          });
+          core.info(`Status “${statusCtx}” set to "${state}" on ${commitSha}`);
