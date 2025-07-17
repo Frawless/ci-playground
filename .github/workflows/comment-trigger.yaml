@@ -19,7 +19,7 @@ on:
         type: string
   # Automated trigger for issue comment
   issue_comment:
-    types: [created]
+    types: [ created ]
   # pull_request:
 
 jobs:
@@ -37,6 +37,7 @@ jobs:
         uses: ./.github/actions/comment-and-status
         with:
           message: ':hourglass_flowing_sand: CI started…'
+          state: pending
           context: "our-e2e-workflow"
           description: "Double check"
 
@@ -147,6 +148,6 @@ jobs:
         uses: ./.github/actions/comment-and-status
         with:
           message: ":tada: Build finished!  (triggered by ${{ github.event_name }})"
-          state: ${{ needs.print-data.outputs.state }}
+          state: ${{ needs.print-data.result }}
           context: "our-e2e-workflow"
-          description: "Double check"
+          statusDescription: "Double check"
