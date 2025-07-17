@@ -24,22 +24,21 @@ runs:
     - name: Add comment & set status
       id: do-work
       uses: actions/github-script@v7
+      env:
+        MESSAGE: ${{ inputs.message }}
+        STATE: ${{ inputs.state }}
+        CONTEXT: ${{ inputs.context }}
+        STATUS_DESCRIPTION: ${{ inputs.statusDescription }}
+        SHA: ${{ inputs.sha }}
       with:
-        # 👇 forward every composite input
-        message: ${{ inputs.message }}
-        state: ${{ inputs.state }}
-        context: ${{ inputs.context }}
-        statusDescription: ${{ inputs.statusDescription }}
-        sha: ${{ inputs.sha }}
-
         script: |
           const {owner, repo} = context.repo;
 
-          const msg        = core.getInput('message');
-          const stateIn    = core.getInput('state');
-          const statusCtx  = core.getInput('context');
-          const statusDesc = core.getInput('statusDescription');
-          let   commitSha  = core.getInput('sha') || '';
+          const msg        = process.env.MESSAGE
+          const jobState    = process.env.STATE
+          const statusCtx  = process.env.CONTEXT
+          const statusDesc = process.env.STATUS_DESCRIPTION
+          let   commitSha  = process.env.SHA
           let   prNumber    = undefined;
 
           // ---------- work out PR number & SHA ----------
@@ -95,7 +94,12 @@ runs:
             }
         
             // 2.2 finish the run with the desired conclusion
-            const conclusion = { success:'success', failure:'failure', pending:'in_progress', error:'neutral' }[state] || 'neutral';
+            const conclusion = { 
+              success: 'success', 
+              failure: 'failure', 
+              pending:'in_progress', 
+              error:'neutral' 
+            }[jobState] || 'neutral';
           
             await github.rest.checks.update({
               owner, repo, check_run_id: runId,
