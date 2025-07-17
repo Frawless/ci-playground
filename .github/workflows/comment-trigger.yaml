@@ -31,6 +31,13 @@ jobs:
     steps:
       - uses: ./.github/actions/assert-authorized@main
 
+      - name: Set commit status ➜ pending
+        uses: ./.github/actions/comment-and-status@main
+        with:
+          message: ':hourglass_flowing_sand: CI started…'
+          context: "our-e2e-workflow"
+          description: "Double check"
+
   # Check if the comment contains "/gha run" at all.
   # If not, don't even bother with parse-params job.
   parse-params:
@@ -86,7 +93,7 @@ jobs:
           echo "Got following data"
 
   print-data:
-    name: print
+    name: print-data
     needs:
       - parse-params
       - build-images
@@ -126,7 +133,7 @@ jobs:
   report:
     if: ${{ always() }}
     needs:
-      - print
+      - print-data
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -139,6 +146,6 @@ jobs:
         with:
           message: |
             :tada: Build finished!  (triggered by ${{ github.event_name }})
-          state: success
+          state: ${{ needs.print-data.outputs.state }}
           context: "our-e2e-workflow"
           description: "Double check"
