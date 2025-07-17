@@ -135,9 +135,9 @@ jobs:
           kafkaVersion: ${{ needs.parse-params.outputs.kafkaVersion }}
 
   report:
-    if: ${{ always() }}
     needs:
       - print-data
+    if: ${{ always() && needs.build-images.result != 'skipped' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
