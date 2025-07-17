@@ -51,6 +51,7 @@ runs:
           try {
             await github.rest.orgs.getMembershipForUser({org: owner, username: actor});
             core.info(`${actor} is in org” → authorised ✅`);
+            return;
           } catch (_) { 
             core.info(`${actor} is not in org “${owner}”.`); 
           }
