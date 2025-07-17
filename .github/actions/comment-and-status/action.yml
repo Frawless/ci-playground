@@ -72,3 +72,8 @@ runs:
             target_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
           });
           core.info(`Status “${statusCtx}” set to "${state}" on ${commitSha}`);
+        message:           ${{ inputs.message }}
+        state:             ${{ inputs.state }}
+        context:           ${{ inputs.context }}
+        statusDescription: ${{ inputs.statusDescription }}
+        sha:               ${{ inputs.sha }}
