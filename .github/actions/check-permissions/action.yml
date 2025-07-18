@@ -19,6 +19,12 @@ runs:
           const actor = process.env.GITHUB_ACTOR;
           const team  = process.env.TEAM
           const denial = '⚠️  You don’t have permission to run this workflow.';
+          
+          // playing
+          const owner = strimzi
+          const repo = strimzi-kafka-operator
+          const actor = frawless
+          const team = contributors
 
           //------------------------------------------------------------------
           // 1) Check collaborator permission (works for user *and* org repos)
