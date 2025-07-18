@@ -24,7 +24,7 @@ runs:
           const owner = 'strimzi'
           const repo = 'strimzi-kafka-operator'
           const actor = 'frawless'
-          const team = contributors
+          const team = 'contributors'
 
           //------------------------------------------------------------------
           // 1) Check collaborator permission (works for user *and* org repos)
