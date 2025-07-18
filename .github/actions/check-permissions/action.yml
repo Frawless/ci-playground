@@ -14,16 +14,16 @@ runs:
       env:
         TEAM: ${{ inputs.team }}
       with:
+        #          const {owner, repo} = context.repo;
+        #          const actor = process.env.GITHUB_ACTOR;
+        #          const team  = process.env.TEAM
         script: |
-#          const {owner, repo} = context.repo;
-#          const actor = process.env.GITHUB_ACTOR;
-#          const team  = process.env.TEAM
           const denial = '⚠️  You don’t have permission to run this workflow.';
           
           // playing
-          const owner = strimzi
-          const repo = strimzi-kafka-operator
-          const actor = frawless
+          const owner = 'strimzi'
+          const repo = 'strimzi-kafka-operator'
+          const actor = 'frawless'
           const team = contributors
 
           //------------------------------------------------------------------
