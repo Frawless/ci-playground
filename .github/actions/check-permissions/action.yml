@@ -15,9 +15,9 @@ runs:
         TEAM: ${{ inputs.team }}
       with:
         script: |
-          const {owner, repo} = context.repo;
-          const actor = process.env.GITHUB_ACTOR;
-          const team  = process.env.TEAM
+#          const {owner, repo} = context.repo;
+#          const actor = process.env.GITHUB_ACTOR;
+#          const team  = process.env.TEAM
           const denial = '⚠️  You don’t have permission to run this workflow.';
           
           // playing
