@@ -2,6 +2,9 @@ name: Verify users rights
 description: "Fails the workflow run if the triggering user lacks write permission or is not in the given organisation team."
 
 inputs:
+  message:
+    description: "Message that will be shown as comment in case of access denial"
+    default: "⚠️ You don’t have permission to run this workflow. Please ask a maintainer to trigger it for you."
   team:
     description: "Name of the team that contains trusted contributors"
     default: "contributors"
@@ -13,19 +16,14 @@ runs:
       uses: actions/github-script@v7
       env:
         TEAM: ${{ inputs.team }}
+        MESSAGE: ${{ inputs.message }}
       with:
-        #          const {owner, repo} = context.repo;
-        #          const actor = process.env.GITHUB_ACTOR;
-        #          const team  = process.env.TEAM
         script: |
-          const denial = '⚠️  You don’t have permission to run this workflow.';
+          const {owner, repo} = context.repo;
+          const actor = process.env.GITHUB_ACTOR;
+          const team  = process.env.TEAM
+          const denialMessage = process.env.MESSAGE
           
-          // playing
-          const owner = 'strimzi'
-          const repo = 'strimzi-kafka-operator'
-          const actor = 'frawless'
-          const team = 'contributors'
-
           //------------------------------------------------------------------
           // 1) Check collaborator permission (works for user *and* org repos)
           //------------------------------------------------------------------
@@ -73,7 +71,7 @@ runs:
             await github.rest.issues.createComment({
               owner, repo,
               issue_number: issueNumber,
-              body: denial
+              body: denialMessage
             });
             core.info(`Refusal comment posted to PR #${issueNumber}`);
           }
