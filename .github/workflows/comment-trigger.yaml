@@ -37,10 +37,10 @@ jobs:
       - name: Set commit status ➜ pending
         uses: ./.github/actions/comment-and-status
         with:
-          message: ':hourglass_flowing_sand: CI started…'
-          state: pending
-          context: "our-e2e-workflow"
-          statusDescription: "Double check"
+          commentMessage: ':hourglass_flowing_sand: CI started…'
+          checkState: pending
+          checkName: "our-e2e-workflow"
+          checkDescription: "Double check"
 
   # Check if the comment contains "/gha run" at all.
   # If not, don't even bother with parse-params job.
@@ -149,7 +149,7 @@ jobs:
       - name: Comment + status
         uses: ./.github/actions/comment-and-status
         with:
-          message: ":tada: Build finished!  (triggered by ${{ github.event_name }})"
-          state: ${{ needs.print-data.result }}
-          context: "our-e2e-workflow"
-          statusDescription: "Double check"
+          commentMessage: ":tada: Build finished!  (triggered by ${{ github.event_name }})"
+          checkState: ${{ needs.print-data.result }}
+          checkName: "our-e2e-workflow"
+          checkDescription: "Double check"
