@@ -35,14 +35,17 @@ runs:
           const desc      = process.env.CHECK_DESCRIPTION
           let   sha       = process.env.SHA
           let   prNumber  = undefined;
+          let   isPr  = undefined;
 
           //------------------------------------------------------------------
           // 1) Work out PR number & HEAD SHA
           //------------------------------------------------------------------
           if (context.payload.pull_request) {
+            isPr = true;
             prNumber = context.payload.pull_request.number;
             sha    ||= context.payload.pull_request.head.sha;
           } else if (context.payload.issue?.pull_request) {
+            isPr = true;
             prNumber = context.payload.issue.number;
             if (!sha) {
               const pr = await github.request(
@@ -50,6 +53,7 @@ runs:
               sha = pr.data.head.sha;
             }
           } else {
+            isPr = false;
             sha ||= context.sha;
           }
 
@@ -130,20 +134,21 @@ runs:
             //------------------------------------------------------------------
             // 5) Set commit status as well
             //------------------------------------------------------------------
-            const stateForStatusApi =
-              checkState === 'pending' ? 'pending' :
-              checkState === 'failure' ? 'failure' :
-              checkState === 'error'   ? 'error'   : 'success';
-          
-            await github.rest.repos.createCommitStatus({
-              owner, repo,
-              sha,
-              state: stateForStatusApi,
-              context: checkName,
-              description: desc,
-              target_url:
-                `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
-                `/actions/runs/${process.env.GITHUB_RUN_ID}`
-            });
-          
+            if (!pr) {
+              const stateForStatusApi =
+                checkState === 'pending' ? 'pending' :
+                checkState === 'failure' ? 'failure' :
+                checkState === 'error'   ? 'error'   : 'success';
+            
+              await github.rest.repos.createCommitStatus({
+                owner, repo,
+                sha,
+                state: stateForStatusApi,
+                context: checkName,
+                description: desc,
+                target_url:
+                  `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
+                  `/actions/runs/${process.env.GITHUB_RUN_ID}`
+              });
+            }         
           }
