@@ -78,7 +78,21 @@ runs:
                 owner, repo,
                 name: checkName,
                 head_sha: sha,
-                status: 'in_progress'
+                status: 'in_progress',
+                output: {
+                  title: checkName,
+                  summary: [
+                    '${desc}',
+                    '',
+                    'See the full workflow run → ' +
+                    `[open logs](${process.env.GITHUB_SERVER_URL}/` +
+                    `${process.env.GITHUB_REPOSITORY}/actions/runs/` +
+                    `${process.env.GITHUB_RUN_ID})`
+                  ].join('\n')
+                },
+                details_url:
+                  `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
+                  `/actions/runs/${process.env.GITHUB_RUN_ID}`
               })).data;
             }
   
@@ -92,7 +106,14 @@ runs:
                 conclusion,
                 output: {
                   title: checkName,
-                  summary: desc || msg
+                  summary: [
+                    '${desc}',
+                    '',
+                    'See the full workflow run → ' +
+                    `[open logs](${process.env.GITHUB_SERVER_URL}/` +
+                    `${process.env.GITHUB_REPOSITORY}/actions/runs/` +
+                    `${process.env.GITHUB_RUN_ID})`
+                  ].join('\n')
                 },
                 details_url:
                   `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
