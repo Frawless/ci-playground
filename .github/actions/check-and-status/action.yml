@@ -134,7 +134,7 @@ runs:
             //------------------------------------------------------------------
             // 5) Set commit status as well
             //------------------------------------------------------------------
-            if (!pr) {
+            if (!isPr) {
               const stateForStatusApi =
                 checkState === 'pending' ? 'pending' :
                 checkState === 'failure' ? 'failure' :
