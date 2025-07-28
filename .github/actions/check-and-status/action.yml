@@ -74,7 +74,7 @@ runs:
                            .find(cr => cr.name === checkName && cr.status !== 'completed');
   
             core.info(`Using SHA: ${sha}`);
-            core.info(`Found the following runs: ${list.data.check_runs.length}`);
+            core.info(`Found the following runs: ${list.data.check_runs}`);
   
             if (!run) {
               core.info('Creating a new check-run…');
@@ -97,8 +97,9 @@ runs:
                   `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
                   `/actions/runs/${process.env.GITHUB_RUN_ID}`
               })).data;
+              core.info(`Created new run: ${run}`)
             } else {
-                core.info(`Re-using existing run #${run.id} (status=${run.status})`);
+              core.info(`Re-using existing run #${run.id} (status=${run.status})`);
             }
   
             //------------------------------------------------------------------
