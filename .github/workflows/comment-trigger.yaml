@@ -29,6 +29,7 @@ jobs:
       contents: write
       pull-requests: write
       checks: write
+      statuses: write
     steps:
       - uses: frawless/ci-playground/.github/actions/check-permissions@main
 
@@ -147,6 +148,7 @@ jobs:
       contents: write
       pull-requests: write
       checks: write
+      statuses: write
     steps:
       - uses: actions/checkout@v4
 
