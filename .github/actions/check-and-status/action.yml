@@ -73,7 +73,11 @@ runs:
             let run = list.data.check_runs
                            .find(cr => cr.name === checkName && cr.status !== 'completed');
   
+            core.info(`Using SHA: ${sha}`);
+            core.info(`Found the following runs: ${list.data.check_runs.length}`);
+  
             if (!run) {
+              core.info('Creating a new check-run…');
               run = (await github.rest.checks.create({
                 owner, repo,
                 name: checkName,
@@ -93,6 +97,8 @@ runs:
                   `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
                   `/actions/runs/${process.env.GITHUB_RUN_ID}`
               })).data;
+            } else {
+                core.info(`Re-using existing run #${run.id} (status=${run.status})`);
             }
   
             //------------------------------------------------------------------
