@@ -82,10 +82,9 @@ runs:
                 output: {
                   title: checkName,
                   summary: [
-                    '${desc}',
+                    desc,
                     '',
-                    'See the full workflow run → ' +
-                    `[open logs](${process.env.GITHUB_SERVER_URL}/` +
+                    `[See the full workflow run](${process.env.GITHUB_SERVER_URL}/` +
                     `${process.env.GITHUB_REPOSITORY}/actions/runs/` +
                     `${process.env.GITHUB_RUN_ID})`
                   ].join('\n')
@@ -107,10 +106,9 @@ runs:
                 output: {
                   title: checkName,
                   summary: [
-                    '${desc}',
+                    desc,
                     '',
-                    'See the full workflow run → ' +
-                    `[open logs](${process.env.GITHUB_SERVER_URL}/` +
+                    `[See the full workflow run](${process.env.GITHUB_SERVER_URL}/` +
                     `${process.env.GITHUB_REPOSITORY}/actions/runs/` +
                     `${process.env.GITHUB_RUN_ID})`
                   ].join('\n')

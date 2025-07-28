@@ -141,7 +141,7 @@ jobs:
   report:
     needs:
       - print-data
-    if: ${{ always() && needs.build-images.result != 'skipped' }}
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
