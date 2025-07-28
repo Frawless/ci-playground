@@ -109,6 +109,7 @@ runs:
               await github.rest.checks.update({
                 owner, repo, check_run_id: run.id,
                 status: 'completed',
+                name: checkName,
                 conclusion,
                 output: {
                   title: checkName,
@@ -125,4 +126,24 @@ runs:
                   `/actions/runs/${process.env.GITHUB_RUN_ID}`
               });
             }
+          
+            //------------------------------------------------------------------
+            // 5) Set commit status as well
+            //------------------------------------------------------------------
+            const stateForStatusApi =
+              checkState === 'pending' ? 'pending' :
+              checkState === 'failure' ? 'failure' :
+              checkState === 'error'   ? 'error'   : 'success';
+          
+            await github.rest.repos.createCommitStatus({
+              owner, repo,
+              sha,
+              state: stateForStatusApi,
+              context: checkName,
+              description: desc,
+              target_url:
+                `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
+                `/actions/runs/${process.env.GITHUB_RUN_ID}`
+            });
+          
           }
