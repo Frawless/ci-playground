@@ -1,6 +1,6 @@
 name: Parse-comment template
 
-on: [push]
+on: [ push ]
 
 jobs:
   sut:
@@ -15,18 +15,41 @@ jobs:
         shell: bash
         env:
           EXPECT_PIPELINES: ${{ env.EXPECT_PIPELINES }}
-          EXPECT_PROFILES:  ${{ env.EXPECT_PROFILES }}
+          EXPECT_PROFILES: ${{ env.EXPECT_PROFILES }}
+          EXPECT_TESTS: ${{ env.EXPECT_TESTS }}
+          EXPECT_GROUPS: ${{ env.EXPECT_GROUPS }}
+          EXPECT_KAFKA: ${{ env.EXPECT_KAFKA }}
+          EXPECT_KUBE: ${{ env.EXPECT_KUBE }}
+          EXPECT_ARCHITECTURE: ${{ env.EXPECT_ARCHITECTURE }}
+          EXPECT_AGENT: ${{ env.EXPECT_AGENT }}
         run: |
           set -euo pipefail
           
           ACTUAL_PIPELINES='${{ steps.parse.outputs.pipelineList }}'
           ACTUAL_PROFILES='${{ steps.parse.outputs.profileList }}'
+          ACTUAL_TESTS='${{ steps.parse.outputs.tests }}'
+          ACTUAL_GROUPS='${{ steps.parse.outputs.groups }}'
+          ACTUAL_KAFKA='${{ steps.parse.outputs.kafkaVersion }}'
+          ACTUAL_KUBE='${{ steps.parse.outputs.kubeVersion }}'
+          ACTUAL_ARCHITECTURE='${{ steps.parse.outputs.architecture }}'
+          ACTUAL_AGENT='${{ steps.parse.outputs.agent }}'
           
           echo "::group::Assertion details"
           printf 'EXPECT_PIPELINES=%q\n' "$EXPECT_PIPELINES"
           printf 'ACTUAL_PIPELINES=%q\n' "$ACTUAL_PIPELINES"
           printf 'EXPECT_PROFILES=%q\n'  "$EXPECT_PROFILES"
-          printf 'ACTUAL_PROFILES=%q\n'  "$ACTUAL_PROFILES"
+          printf 'ACTUAL_TESTS=%q\n'  "$ACTUAL_TESTS"
+          printf 'EXPECT_TESTS=%q\n'  "$EXPECT_TESTS"
+          printf 'ACTUAL_GROUPS=%q\n'  "$ACTUAL_GROUPS"
+          printf 'EXPECT_GROUPS=%q\n'  "$EXPECT_GROUPS"
+          printf 'ACTUAL_KAFKA=%q\n'  "$ACTUAL_KAFKA"
+          printf 'EXPECT_KAFKA=%q\n'  "$EXPECT_KAFKA"
+          printf 'ACTUAL_KUBE=%q\n'  "$ACTUAL_KUBE"
+          printf 'EXPECT_KUBE=%q\n'  "$EXPECT_KUBE"
+          printf 'ACTUAL_ARCHITECTURE=%q\n'  "$ACTUAL_ARCHITECTURE"
+          printf 'EXPECT_ARCHITECTURE=%q\n'  "$EXPECT_ARCHITECTURE"
+          printf 'ACTUAL_AGENT=%q\n'  "$ACTUAL_AGENT"
+          printf 'EXPECT_AGENT=%q\n'  "$EXPECT_AGENT"
           echo "::endgroup::"
           
           if [[ "$ACTUAL_PIPELINES" != "$EXPECT_PIPELINES" ]]; then
@@ -34,5 +57,23 @@ jobs:
           fi
           if [[ "$ACTUAL_PROFILES"  != "$EXPECT_PROFILES" ]]; then
             echo "❌ profileList mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_TESTS"  != "$EXPECT_TESTS" ]]; then
+            echo "❌ tests mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_GROUPS"  != "$EXPECT_GROUPS" ]]; then
+            echo "❌ groups mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_KAFKA"  != "$EXPECT_KAFKA" ]]; then
+            echo "❌ kafkaVersion mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_KUBE"  != "$EXPECT_KUBE" ]]; then
+            echo "❌ kubeVersion mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_ARCHITECTURE"  != "$EXPECT_ARCHITECTURE" ]]; then
+            echo "❌ architecture mismatch";  exit 1
+          fi
+          if [[ "$ACTUAL_AGENT"  != "$EXPECT_AGENT" ]]; then
+            echo "❌ agent mismatch";  exit 1
           fi
           echo "✅ Assertions passed"

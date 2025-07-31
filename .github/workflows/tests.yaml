@@ -2,6 +2,8 @@ name: Unit & Integration tests
 
 on:
   pull_request:
+    paths:
+      - '.github/**'
   push:
     branches:
       - "main"
@@ -16,6 +18,8 @@ jobs:
           args: -color
 
   integration:
+    needs:
+      - lint
     runs-on: ubuntu-latest
 
     strategy:
@@ -23,20 +27,44 @@ jobs:
       matrix:
         case:
           # ─── Scenario 1 ──────────────────────────────
-          - id: pr-pipeline
-            fixture: .github/tests/events/issue_comment_pipeline.json
+          - id: comment-pipeline-only
+            fixture: .github/tests/events/issue_comment_1.json
             expect_pipelines: 'regression,upgrade'
             expect_profiles: ''
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: ''
             workflow: .github/tests/workflows/parse-comment-template.yaml
-
           # ─── Scenario 2 ──────────────────────────────
-          - id: issue-profile
-            fixture: .github/tests/events/issue_comment_profile.json
+          - id: comment-profile-only
+            fixture: .github/tests/events/issue_comment_2.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands'
+            expect_tests: 'strimzi-tests'
+            expect_groups: ''
+            expect_kafka: ''
             workflow: .github/tests/workflows/parse-comment-template.yaml
-
           # ─── Scenario 3 ──────────────────────────────
+          - id: comment-additional-params
+            fixture: .github/tests/events/issue_comment_3.json
+            expect_pipelines: 'regression,upgrade'
+            expect_profiles: ''
+            expect_tests: ''
+            expect_groups: 'nodeport'
+            expect_kafka: '4.1.0'
+            expect_kube: '1.33.1'
+            expect_architecture: 'arm64'
+            expect_agent: 'strimzi-agent'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 4 ──────────────────────────────
+          - id: comment-pipeline-and-profile
+            fixture: .github/tests/events/issue_comment_4.json
+            expect_pipelines: ''
+            expect_profiles: 'operators,operands'
+            expect_groups: ''
+            expect_kafka: ''
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 5 ──────────────────────────────
           - id: dispatch
             fixture: .github/tests/events/dispatch_default.json
             expect_pipelines: ''
@@ -63,4 +91,10 @@ jobs:
           act -W "${{ matrix.case.workflow }}" \
               -e "${{ matrix.case.fixture }}" \
               --env EXPECT_PIPELINES="${{ matrix.case.expect_pipelines }}" \
-              --env EXPECT_PROFILES="${{ matrix.case.expect_profiles }}"
+              --env EXPECT_PROFILES="${{ matrix.case.expect_profiles }}" \
+              --env EXPECT_TESTS="${{ matrix.case.expect_tests }}" \
+              --env EXPECT_GROUPS="${{ matrix.case.expect_groups }}" \
+              --env EXPECT_KAFKA="${{ matrix.case.expect_kafka }}" \
+              --env EXPECT_KUBE="${{ matrix.case.expect_kube }}" \
+              --env EXPECT_ARCHITECTURE="${{ matrix.case.expect_architecture }}" \
+              --env EXPECT_AGENT="${{ matrix.case.expect_agent }}"
