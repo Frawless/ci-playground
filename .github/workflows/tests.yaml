@@ -60,7 +60,7 @@ jobs:
       - name: Smoke test – ${{ matrix.case.id }}
         # `act` itself is a plain shell command, so this step only needs `run:`
         run: |
-          EXPECT_PIPELINES='${{ matrix.case.expect_pipelines }}' \
-          EXPECT_PROFILES='${{ matrix.case.expect_profiles }}'   \
-          act -W "${{ matrix.case.workflow }}"     \
-              -e "${{ matrix.case.fixture }}"
+          act -W "${{ matrix.case.workflow }}" \
+              -e "${{ matrix.case.fixture }}" \
+              --env EXPECT_PIPELINES="${{ matrix.case.expect_pipelines }}" \
+              --env EXPECT_PROFILES="${{ matrix.case.expect_profiles }}"

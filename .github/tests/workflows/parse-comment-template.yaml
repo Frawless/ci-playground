@@ -12,10 +12,27 @@ jobs:
         uses: ./.github/actions/parse-comment
 
       - name: Assert expected outputs
+        shell: bash
+        env:
+          EXPECT_PIPELINES: ${{ env.EXPECT_PIPELINES }}
+          EXPECT_PROFILES:  ${{ env.EXPECT_PROFILES }}
         run: |
-          echo "pipelineList=${{ steps.parse.outputs.pipelineList }}"
-          echo "profileList=${{ steps.parse.outputs.profileList }}"
-
-          # Fail fast if the Action mis-parses
-          [ "${{ steps.parse.outputs.pipelineList }}" = "${{ env.EXPECT_PIPELINES }}" ]
-          [ "${{ steps.parse.outputs.profileList }}"  = "${{ env.EXPECT_PROFILES  }}" ]
+          set -euo pipefail
+          
+          ACTUAL_PIPELINES='${{ steps.parse.outputs.pipelineList }}'
+          ACTUAL_PROFILES='${{ steps.parse.outputs.profileList }}'
+          
+          echo "::group::Assertion details"
+          printf 'EXPECT_PIPELINES=%q\n' "$EXPECT_PIPELINES"
+          printf 'ACTUAL_PIPELINES=%q\n' "$ACTUAL_PIPELINES"
+          printf 'EXPECT_PROFILES=%q\n'  "$EXPECT_PROFILES"
+          printf 'ACTUAL_PROFILES=%q\n'  "$ACTUAL_PROFILES"
+          echo "::endgroup::"
+          
+          if [[ "$ACTUAL_PIPELINES" != "$EXPECT_PIPELINES" ]]; then
+            echo "❌ pipelineList mismatch"; exit 1
+          fi
+          if [[ "$ACTUAL_PROFILES"  != "$EXPECT_PROFILES" ]]; then
+            echo "❌ profileList mismatch";  exit 1
+          fi
+          echo "✅ Assertions passed"
