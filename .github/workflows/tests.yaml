@@ -30,7 +30,7 @@ jobs:
 
           # ─── Scenario 2 ──────────────────────────────
           - id: issue-profile
-            fixture: tests/events/issue_comment_profile.json
+            fixture: .github/tests/events/issue_comment_profile.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands'
             workflow: .github/tests/workflows/parse-comment-template.yaml
