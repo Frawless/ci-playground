@@ -44,6 +44,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Pre-configure act
+        run: |
+          mkdir -p ~/.config/act
+          echo "-P ubuntu-latest=catthehacker/ubuntu:act-latest" > ~/.config/act/actrc
+
       # Install `act` (one-liner script; runner already has Docker)
       - name: Install act
         run: |
