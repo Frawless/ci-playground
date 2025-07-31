@@ -54,7 +54,6 @@ jobs:
     needs:
       - check-rights
     outputs:
-      runTests: ${{ steps.parse.outputs.runTests }}
       pipelineList: ${{ steps.parse.outputs.pipelineList }}
       profileList: ${{ steps.parse.outputs.profileList }}
       agent: ${{ steps.parse.outputs.agent }}
@@ -62,7 +61,6 @@ jobs:
       strimzi_feature_gates: ${{ steps.parse.outputs.strimzi_feature_gates }}
       strimzi_rbac_scope: ${{ steps.parse.outputs.strimzi_rbac_scope }}
       cluster_operator_install_type: ${{ steps.parse.outputs.cluster_operator_install_type }}
-      parallel: ${{ steps.parse.outputs.parallel }}
       kafkaVersion: ${{ steps.parse.outputs.kafkaVersion }}
       releaseVersion: ${{ steps.parse.outputs.releaseVersion }}
       shouldRun: ${{ steps.parse.outputs.shouldRun }}
@@ -125,7 +123,6 @@ jobs:
           
           echo "Results:"
           echo "${{ needs.build-images.result }}"
-          echo "${{ needs.should-run.outputs.ok }}"
 
         env:
           pipelineList: ${{ needs.parse-params.outputs.pipelineList }}
