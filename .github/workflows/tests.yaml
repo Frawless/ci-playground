@@ -73,11 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pre-configure act
-        run: |
-          mkdir -p ~/.config/act
-          echo "-P ubuntu-latest=catthehacker/ubuntu:act-latest" > ~/.config/act/actrc
-
       # Install `act` (one-liner script; runner already has Docker)
       - name: Install act
         run: |
@@ -90,6 +85,8 @@ jobs:
         run: |
           act -W "${{ matrix.case.workflow }}" \
               -e "${{ matrix.case.fixture }}" \
+              -P ubuntu-latest=catthehacker/ubuntu:act-latest \
+              --pull=false \
               --env EXPECT_PIPELINES="${{ matrix.case.expect_pipelines }}" \
               --env EXPECT_PROFILES="${{ matrix.case.expect_profiles }}" \
               --env EXPECT_TESTS="${{ matrix.case.expect_tests }}" \

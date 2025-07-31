@@ -38,6 +38,7 @@ jobs:
           printf 'EXPECT_PIPELINES=%q\n' "$EXPECT_PIPELINES"
           printf 'ACTUAL_PIPELINES=%q\n' "$ACTUAL_PIPELINES"
           printf 'EXPECT_PROFILES=%q\n'  "$EXPECT_PROFILES"
+          printf 'ACTUAL_PROFILES=%q\n'  "$ACTUAL_PROFILES"
           printf 'ACTUAL_TESTS=%q\n'  "$ACTUAL_TESTS"
           printf 'EXPECT_TESTS=%q\n'  "$EXPECT_TESTS"
           printf 'ACTUAL_GROUPS=%q\n'  "$ACTUAL_GROUPS"
