@@ -16,9 +16,6 @@ inputs:
     default: ""
 
 outputs:
-  runTests:
-    description: "true/false value if tests should be run"
-    value: ${{ steps.parse_comment.outputs.runTests }}
   pipelineList:
     description: "Comma-separated list of pipeline names (if provided)"
     value: ${{ steps.parse_comment.outputs.pipelineList }}
@@ -40,6 +37,12 @@ outputs:
   cluster_operator_install_type:
     description: "The parsed cluster_operator_install_type value"
     value: ${{ steps.parse_comment.outputs.cluster_operator_install_type }}
+  groups:
+    description: "JUnit5 test groups that will be executed"
+    value: ${{ steps.parse_comment.outputs.groups }}
+  tests:
+    description: "JUnit5 tests that will be executed"
+    value: ${{ steps.parse_comment.outputs.tests }}
   kafkaVersion:
     description: "Kafka version used for most of the tests"
     value: ${{ steps.parse_comment.outputs.kafkaVersion }}
@@ -47,8 +50,24 @@ outputs:
     description: "Release version a.k.a docker tag of released images"
     value: ${{ steps.parse_comment.outputs.releaseVersion }}
   shouldRun:
-    description: "Should Run"
+    description: "Flag if tests were triggered via comment or UI which leads to running the following jobs"
     value: ${{ steps.should_run.outputs.shouldRun }}
+  kubeVersion:
+    description: "Version of Kubernetes used for tests"
+    value: ${{ steps.should_run.outputs.kubeVersion }}
+  # Checkout ref outputs
+  repo_owner:
+    description: "Owner of the repository a.k.a org name"
+    value: ${{ steps.checkout_ref.outputs.repo_owner }}
+  repo_name:
+    description: "Repository name"
+    value: ${{ steps.checkout_ref.outputs.repo_name }}
+  ref:
+    description: "Branch name"
+    value: ${{ steps.checkout_ref.outputs.ref }}
+  sha:
+    description: "Branch commit sha reference"
+    value: ${{ steps.checkout_ref.outputs.sha }}
 
 runs:
   using: "composite"
@@ -58,11 +77,40 @@ runs:
       shell: bash
       run: |
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "shouldRun=true" >> "$GITHUB_OUTPUT"
+          SHOULD_RUN_VALUE="true"
         elif echo "${{ github.event.comment.body }}" | grep -qiE '/gha\s+run'; then
-          echo "shouldRun=true" >> "$GITHUB_OUTPUT"
+          SHOULD_RUN_VALUE="true"
         else
-          echo "shouldRun=false" >> "$GITHUB_OUTPUT"
+          # TODO - set this to false, this is set to true just for testing purposes!!! - remove before merge
+          SHOULD_RUN_VALUE="true"
+        fi
+        
+        echo "shouldRun=$SHOULD_RUN_VALUE" >> "$GITHUB_OUTPUT"
+        echo "Parsed shouldRun: $SHOULD_RUN_VALUE"
+
+    - name: Determine checkout ref
+      id: checkout_ref
+      shell: bash
+      run: |
+        echo "event_name=${{ github.event_name }}" >> "$GITHUB_OUTPUT"
+        
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "repo_owner=${{ github.event.pull_request.head.repo.owner.login }}" >> "$GITHUB_OUTPUT"
+          echo "repo_name=${{ github.event.pull_request.head.repo.name }}" >> "$GITHUB_OUTPUT"
+          echo "ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+        elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+          # Assume comment was made on PR
+          echo "repo_owner=${{ github.event.issue.pull_request.head.repo.owner.login }}" >> "$GITHUB_OUTPUT"
+          echo "repo_name=${{ github.event.issue.pull_request.head.repo.name }}" >> "$GITHUB_OUTPUT"
+          echo "ref=${{ github.event.issue.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.event.issue.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+        else
+          # Assume this will be for the rest of events including workflow dispatch
+          echo "repo_owner=${{ github.repository_owner }}" >> "$GITHUB_OUTPUT"
+          echo "repo_name=$(basename "${{ github.repository }}")" >> "$GITHUB_OUTPUT"
+          echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Build Comment
@@ -70,12 +118,16 @@ runs:
       shell: bash
       run: |
         if [[ "${{ github.event.comment.body }}" == "" ]]; then
-          builtComment="/gha run profile=${{ inputs.profile }} kafkaVersion=${{ inputs.kafkaVersion }}"
+          BUILT_COMMENT_VALUE="/gha run profile=${{ inputs.profile }} kafkaVersion=${{ inputs.kafkaVersion }}"
         else
-          builtComment="${{ github.event.comment.body }}"
+          BUILT_COMMENT_VALUE="${{ github.event.comment.body }}"
         fi
+        # TODO - remove this before merge
+        BUILT_COMMENT_VALUE="/gha run pipeline=regression,upgrade"
+        BUILT_COMMENT_VALUE="/gha run pipeline=regression,upgrade,regression-fg,regression-rbac,acceptance,acceptance-helm"
         
-        echo "builtComment=$builtComment" >> "$GITHUB_OUTPUT"
+        echo "builtComment=$BUILT_COMMENT_VALUE" >> "$GITHUB_OUTPUT"
+        echo "Parsed builtComment: $BUILT_COMMENT_VALUE"
 
     - name: Parse Comment
       id: parse_comment
@@ -88,13 +140,12 @@ runs:
         COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
         
         # Default values
-        DEFAULT_PIPELINES="regression,upgrade,performance"
-        DEFAULT_PROFILES="regression,upgrade,performance"
+        DEFAULT_PIPELINES="regression,upgrade"
+        DEFAULT_PROFILES="operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade"
         DEFAULT_FEATURE_GATES="false"
         DEFAULT_RBAC_SCOPE="CLUSTER"
         DEFAULT_OPERATOR_INSTALL_TYPE="bundle"
         
-        RUN_TESTS="false"
         PIPELINE_LIST=""
         PROFILE_LIST=""
         AGENT_VALUE=""
@@ -103,10 +154,13 @@ runs:
         RBAC_VALUE="$DEFAULT_RBAC_SCOPE"
         COI_VALUE="$DEFAULT_OPERATOR_INSTALL_TYPE"
         PARALLEL_VALUE=""
+        GROUPS_VALUE=""
+        TESTS_VALUE=""
+        KAFKA_VERSION_VALUE=""
+        KUBE_VERSION_VALUE=""
         
         # Check for trigger string
         if echo "$COMMENT_LOWER" | grep -q "/gha run"; then
-          RUN_TESTS="true"
         
           # Check if pipeline parameter exists (pipeline=...)
           if echo "$COMMENT_LOWER" | grep -q "pipeline="; then
@@ -149,6 +203,15 @@ runs:
           if echo "$COMMENT_LOWER" | grep -q "architecture="; then
             ARCH_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*architecture=\([^ ]*\).*/\1/p')
           fi
+          if echo "$COMMENT_LOWER" | grep -q "groups="; then
+            GROUPS_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*groups=\([^ ]*\).*/\1/p')
+          fi
+          if echo "$COMMENT_LOWER" | grep -q "tests="; then
+            TESTS_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*tests=\([^ ]*\).*/\1/p')
+          fi
+          if echo "$COMMENT_LOWER" | grep -q "kubeversion="; then
+            KUBE_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kubeversion=\([^ ]*\).*/\1/p')
+          fi
           if echo "$COMMENT_LOWER" | grep -q "kafkaversion="; then
             KAFKA_VERSION_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*kafkaversion=\([^ ]*\).*/\1/p')
           else
@@ -163,7 +226,6 @@ runs:
         fi
         
         # Output the collected values as simple comma-separated strings
-        echo "runTests=$RUN_TESTS" >> $GITHUB_OUTPUT
         echo "pipelineList=$PIPELINE_LIST" >> $GITHUB_OUTPUT
         echo "profileList=$PROFILE_LIST" >> $GITHUB_OUTPUT
         echo "agent=$AGENT_VALUE" >> $GITHUB_OUTPUT
@@ -172,10 +234,12 @@ runs:
         echo "strimzi_rbac_scope=$RBAC_VALUE" >> $GITHUB_OUTPUT
         echo "cluster_operator_install_type=$COI_VALUE" >> $GITHUB_OUTPUT
         echo "parallel=$PARALLEL_VALUE" >> $GITHUB_OUTPUT
+        echo "groups=$GROUPS_VALUE" >> $GITHUB_OUTPUT
+        echo "tests=$TESTS_VALUE" >> $GITHUB_OUTPUT
         echo "kafkaVersion=$KAFKA_VERSION_VALUE" >> $GITHUB_OUTPUT
         echo "releaseVersion=$RELEASE_VERSION_VALUE" >> $GITHUB_OUTPUT
+        echo "kubeVersion=$KUBE_VERSION_VALUE" >> $GITHUB_OUTPUT
 
-        echo "Parsed runTests: $RUN_TESTS"
         echo "Parsed pipelineList: $PIPELINE_LIST"
         echo "Parsed profileList: $PROFILE_LIST"
         echo "Parsed agent: $AGENT_VALUE"
@@ -184,5 +248,8 @@ runs:
         echo "Parsed strimzi_rbac_scope: $RBAC_VALUE"
         echo "Parsed cluster_operator_install_type: $COI_VALUE"
         echo "Parsed parallel: $PARALLEL_VALUE"
+        echo "Parsed groups: $GROUPS_VALUE"
+        echo "Parsed tests: $TESTS_VALUE"
         echo "Parsed kafkaVersion: $KAFKA_VERSION_VALUE"
         echo "Parsed releaseVersion: $RELEASE_VERSION_VALUE"
+        echo "Parsed kubeVersion: $KUBE_VERSION_VALUE"

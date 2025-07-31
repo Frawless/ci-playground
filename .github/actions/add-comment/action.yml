@@ -18,7 +18,7 @@ runs:
         script: |
           const {owner, repo} = context.repo;
 
-          const msg         = process.env.MESSAGE
+          const msg       = process.env.MESSAGE
           let   sha       = undefined
           let   prNumber  = undefined;
 
@@ -38,6 +38,8 @@ runs:
           } else {
             sha ||= context.sha;
           }
+          
+          core.info(`Going to put a comment to PR “${prNumber}” (“${sha}”) - ”${msg}”`);
 
           //------------------------------------------------------------------
           // 2) Add / update PR comment

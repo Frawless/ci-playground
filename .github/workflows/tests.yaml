@@ -1,0 +1,56 @@
+name: System Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
+  integration:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        case:
+          # ─── Scenario 1 ──────────────────────────────
+          - id: pr-pipeline
+            fixture: tests/events/issue_comment_pipeline.json
+            expect_pipelines: 'regression,upgrade'
+            expect_profiles: ''
+
+          # ─── Scenario 2 ──────────────────────────────
+          - id: issue-profile
+            fixture: tests/events/issue_comment_profile.json
+            expect_pipelines: ''
+            expect_profiles: 'operators,operands'
+
+          # ─── Scenario 3 ──────────────────────────────
+          - id: dispatch
+            fixture: tests/events/dispatch_default.json
+            expect_pipelines: ''
+            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install `act` (one-liner script; runner already has Docker)
+      - name: Install act
+        run: |
+          curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+      # Run the template workflow with the current fixture
+      - name: Smoke test – ${{ matrix.case.id }}
+        # `act` itself is a plain shell command, so this step only needs `run:`
+        run: |
+          EXPECT_PIPELINES='${{ matrix.case.expect_pipelines }}' \
+          EXPECT_PROFILES='${{ matrix.case.expect_profiles }}'   \
+          act -W .github/workflows/integration-template.yml      \
+              -e "${{ matrix.case.fixture }}"

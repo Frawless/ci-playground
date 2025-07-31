@@ -1,0 +1,21 @@
+name: Parse-comment template
+
+on: [push]
+
+jobs:
+  sut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: parse
+        uses: ./actions/parse-comment
+
+      - name: Assert expected outputs
+        run: |
+          echo "pipelineList=${{ steps.parse.outputs.pipelineList }}"
+          echo "profileList=${{ steps.parse.outputs.profileList }}"
+
+          # Fail fast if the Action mis-parses
+          [ "${{ steps.parse.outputs.pipelineList }}" = "${{ env.EXPECT_PIPELINES }}" ]
+          [ "${{ steps.parse.outputs.profileList }}"  = "${{ env.EXPECT_PROFILES  }}" ]

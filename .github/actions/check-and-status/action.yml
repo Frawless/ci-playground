@@ -18,8 +18,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Add check issue/commmit check
+    - name: Add issue/commit check
       id: comment-and-check
+      # Run only if action wasn't triggered by comment or manually
+      if: github.event_name == 'workflow_dispatch' || github.event_name == 'issue_comment'
       uses: actions/github-script@v7
       env:
         CHECK_STATE: ${{ inputs.checkState }}
@@ -57,6 +59,8 @@ runs:
             sha ||= context.sha;
           }
 
+          core.info(`Going to work with the following sha: “${sha}”.`); 
+
           if (sha) {
             //------------------------------------------------------------------
             // 2) Map state → conclusion
@@ -65,7 +69,8 @@ runs:
               success: 'success', 
               failure: 'failure',
               pending: 'in_progress', 
-              error: 'neutral' 
+              error: 'neutral',
+              skipped: 'failure'
             };
             const conclusion = conclusionToState[checkState] ?? 'neutral';
   
@@ -76,12 +81,9 @@ runs:
   
             let run = list.data.check_runs
                            .find(cr => cr.name === checkName && cr.status !== 'completed');
-  
-            core.info(`Using SHA: ${sha}`);
-            core.info(`Found the following runs: ${list.data.check_runs}`);
-  
+    
             if (!run) {
-              core.info('Creating a new check-run…');
+              core.info(`Creating a new check-run ”${checkName}”`);
               run = (await github.rest.checks.create({
                 owner, repo,
                 name: checkName,
@@ -101,7 +103,7 @@ runs:
                   `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
                   `/actions/runs/${process.env.GITHUB_RUN_ID}`
               })).data;
-              core.info(`Created new run: ${run}`)
+              core.info(`Created new run: ${run.id} (status=${run.status})`)
             } else {
               core.info(`Re-using existing run #${run.id} (status=${run.status})`);
             }
@@ -109,7 +111,9 @@ runs:
             //------------------------------------------------------------------
             // 4) Finish the run when we have a final state
             //------------------------------------------------------------------
-            if (conclusion !== 'in_progress') {
+            core.info(`Conclusion for ”${checkName}” is ”${conclusion} (state=${checkState})”`);
+          
+            if (conclusion !== 'in_progress') {          
               await github.rest.checks.update({
                 owner, repo, check_run_id: run.id,
                 status: 'completed',
@@ -140,6 +144,8 @@ runs:
                 checkState === 'failure' ? 'failure' :
                 checkState === 'error'   ? 'error'   : 'success';
             
+              core.info(`Updating commit status “${checkName}”=“${stateForStatusApi}” for sha: “${sha}”.`);
+            
               await github.rest.repos.createCommitStatus({
                 owner, repo,
                 sha,
@@ -150,5 +156,7 @@ runs:
                   `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}` +
                   `/actions/runs/${process.env.GITHUB_RUN_ID}`
               });
-            }         
+            } else {
+              core.info(`Not going to create commit status for sha: “${sha}”.`);
+            }
           }
