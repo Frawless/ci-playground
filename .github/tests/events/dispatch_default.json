@@ -1,11 +1,13 @@
 {
   "event_name": "workflow_dispatch",
   "inputs": {
-    "profile": ""
+    "profile": "operators,operands,azp_kraft_upgrade",
+    "kafkaVersion": "4.1.0",
+    "releaseVersion": "0.48.0"
   },
   "repository": {
-    "name": "demo-repo",
-    "owner": { "login": "octocat" }
+    "name": "test-repo",
+    "owner": { "login": "batman" }
   },
   "ref": "refs/heads/main",
   "head_commit": {
