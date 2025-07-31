@@ -33,7 +33,7 @@ jobs:
             expect_profiles: ''
             expect_tests: ''
             expect_groups: ''
-            expect_kafka: ''
+            expect_kafka: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 2 ──────────────────────────────
           - id: comment-profile-only
@@ -42,7 +42,7 @@ jobs:
             expect_profiles: 'operators,operands'
             expect_tests: 'strimzi-tests'
             expect_groups: ''
-            expect_kafka: ''
+            expect_kafka: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 3 ──────────────────────────────
           - id: comment-additional-params
@@ -59,16 +59,25 @@ jobs:
           # ─── Scenario 4 ──────────────────────────────
           - id: comment-pipeline-and-profile
             fixture: .github/tests/events/issue_comment_4.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands'
+            expect_pipelines: 'regression,upgrade'
+            expect_profiles: ''
             expect_groups: ''
-            expect_kafka: ''
+            expect_kafka: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 5 ──────────────────────────────
+          - id: comment-pipeline-and-profile
+            fixture: .github/tests/events/issue_comment_5.json
+            expect_pipelines: ''
+            expect_profiles: 'operators'
+            expect_groups: ''
+            expect_kafka: 'latest'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 6 ──────────────────────────────
           - id: dispatch
             fixture: .github/tests/events/dispatch_default.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
+            expected_kafka: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
     steps:
       - uses: actions/checkout@v4
