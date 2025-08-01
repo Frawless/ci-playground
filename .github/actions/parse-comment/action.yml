@@ -189,8 +189,8 @@ runs:
           if echo "$COMMENT" | grep -q "strimzi_feature_gates="; then
             FG_VALUE=$(echo "$COMMENT" | sed -n 's/.*strimzi_feature_gates=\([^ ]*\).*/\1/p')
           fi
-          if echo "$COMMENT_LOWER" | grep -q "strimzi_rbac_scope="; then
-            RBAC_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*strimzi_rbac_scope=\([^ ]*\).*/\1/p')
+          if echo "$COMMENT" | grep -q "strimzi_rbac_scope="; then
+            RBAC_VALUE=$(echo "$COMMENT" | sed -n 's/.*strimzi_rbac_scope=\([^ ]*\).*/\1/p')
           fi
           if echo "$COMMENT_LOWER" | grep -q "cluster_operator_install_type="; then
             COI_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*cluster_operator_install_type=\([^ ]*\).*/\1/p')

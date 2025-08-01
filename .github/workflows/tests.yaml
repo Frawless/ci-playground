@@ -145,6 +145,7 @@ jobs:
             expect_groups: ''
             expect_kafka: 'latest'
             expect_strimzi_feature_gates: '+DummyFeatureGate'
+            expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
             expect_release: 'latest'
@@ -188,7 +189,7 @@ jobs:
             expect_strimzi_feature_gates: '+DummyFeatureGate'
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
-            expected_kafka: '4.1.0'
+            expect_kafka: '4.1.0'
             expect_release: '0.48.0'
             expect_should_run: 'true'
             workflow: .github/tests/workflows/parse-comment-template.yaml
@@ -218,7 +219,7 @@ jobs:
             expect_cluster_operator_install_type: 'yaml'
             expect_tests: ''
             expect_groups: ''
-            expect_kafka: 'latest'
+            expect_kafka: ''
             expect_release: 'latest'
             expect_should_run: 'true'
             workflow: .github/tests/workflows/parse-comment-template.yaml
