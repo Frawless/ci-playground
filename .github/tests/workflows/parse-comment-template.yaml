@@ -111,9 +111,9 @@ jobs:
           if [[ "${EXPECT_CLUSTER_OPERATOR_INSTALL_TYPE+defined}" == "defined" && "$ACTUAL_CLUSTER_OPERATOR_INSTALL_TYPE"  != "$EXPECT_CLUSTER_OPERATOR_INSTALL_TYPE" ]]; then
             echo "❌ cluster_operator_install_type mismatch";  exit 1
           fi
-#          if [[ "${EXPECT_PARALLEL+defined}" == "defined" && "$ACTUAL_PARALLEL"  != "$EXPECT_PARALLEL" ]]; then
-#            echo "❌ parallel mismatch";  exit 1
-#          fi
+          # if [[ "${EXPECT_PARALLEL+defined}" == "defined" && "$ACTUAL_PARALLEL"  != "$EXPECT_PARALLEL" ]]; then
+          #   echo "❌ parallel mismatch";  exit 1
+          # fi
           if [[ "${EXPECT_SHOULD_RUN+defined}" == "defined" && "$ACTUAL_SHOULD_RUN"  != "$EXPECT_SHOULD_RUN" ]]; then
             echo "❌ shouldRun mismatch";  exit 1
           fi
