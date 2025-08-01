@@ -17,240 +17,88 @@ jobs:
         with:
           args: -color
 
-  integration:
+  test-parse-comment:
     needs:
       - lint
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        case:
-          # ─── Scenario 1 ──────────────────────────────
-          - id: comment-pipeline-only
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_1.json
-            expect_pipelines: 'regression,upgrade'
-            expect_profiles: ''
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 2 ──────────────────────────────
-          - id: comment-profile-only
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_2.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands'
-            expect_tests: 'strimzi-tests'
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 3 ──────────────────────────────
-          - id: comment-additional-params
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_3.json
-            # custom pipeline uses profiles
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
-            expect_tests: ''
-            expect_groups: 'nodeport'
-            expect_kafka: '4.1.0'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_kube: '1.33.1'
-            expect_architecture: 'arm64'
-            expect_agent: 'strimzi-agent'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 4 ──────────────────────────────
-          - id: comment-pipeline-and-profile
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_4.json
-            expect_pipelines: 'regression,upgrade'
-            expect_profiles: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 5 ──────────────────────────────
-          - id: comment-pipeline-and-profile
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_5.json
-            # pipelines has higher priority than profiles
-            expect_pipelines: 'regression,upgrade'
-            expect_profiles: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 6: Strimzi-specific parameters ─────
-          - id: comment-strimzi-params
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_6.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+SomeNewFeatureGate'
-            expect_strimzi_rbac_scope: 'NAMESPACE'
-            expect_cluster_operator_install_type: 'helm'
-            expect_should_run: 'true'
-            expect_parallel: '4'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 7: Basic trigger without parameters ───
-          - id: comment-basic-trigger
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_7.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 8: Empty pipeline value fallback ──────
-          - id: comment-empty-pipeline
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_8.json
-            expect_pipelines: 'regression,upgrade'
-            expect_profiles: ''
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 9: Non-triggering comment ────────────
-          - id: comment-no-trigger
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_9.json
-            expect_pipelines: ''
-            expect_profiles: ''
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: ''
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'false'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 10: Case insensitive trigger ──────────
-          - id: comment-case-insensitive
-            event: issue_comment
-            fixture: .github/tests/events/issue_comment_10.json
-            expect_pipelines: 'regression,upgrade'
-            expect_profiles: ''
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: 'latest'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_should_run: 'true'
-            expect_release: 'latest'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 11 ──────────────────────────────
-          - id: dispatch
-            event: workflow_dispatch
-            fixture: .github/tests/events/dispatch_default.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands,azp_kraft_upgrade'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_kafka: '4.1.0'
-            expect_release: '0.48.0'
-            expect_should_run: 'true'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 12: Custom workflow_dispatch ──────────
-          - id: dispatch-custom
-            event: workflow_dispatch
-            fixture: .github/tests/events/dispatch_custom.json
-            expect_pipelines: ''
-            expect_profiles: 'custom-profile-1,custom-profile-2'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: '3.5.0'
-            expect_release: '1.0.0'
-            expect_should_run: 'true'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
-          # ─── Scenario 13: Empty workflow_dispatch ───────────
-          - id: dispatch-empty
-            event: workflow_dispatch
-            fixture: .github/tests/events/dispatch_empty.json
-            expect_pipelines: ''
-            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
-            expect_strimzi_feature_gates: '+DummyFeatureGate'
-            expect_strimzi_rbac_scope: 'CLUSTER'
-            expect_cluster_operator_install_type: 'yaml'
-            expect_tests: ''
-            expect_groups: ''
-            expect_kafka: ''
-            expect_release: 'latest'
-            expect_should_run: 'true'
-            workflow: .github/tests/workflows/parse-comment-template.yaml
     steps:
       - uses: actions/checkout@v4
 
-      # Install `act` (one-liner script; runner already has Docker)
-      - name: Install act
+      # Install dependencies
+      - name: Install dependencies
         run: |
+          # Install act for workflow testing
           curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
           sudo install -m 0755 ./bin/act /usr/local/bin/act
+          
+          # Install yq for YAML processing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
 
-      # Run the template workflow with the current fixture
-      - name: Smoke test – ${{ matrix.case.id }}
-        # `act` itself is a plain shell command, so this step only needs `run:`
+      # Test all parse-comment scenarios
+      - name: Test parse-comment action scenarios
         run: |
-          act "${{ matrix.case.event }}" -W "${{ matrix.case.workflow }}" \
-              -e "${{ matrix.case.fixture }}" \
-              -P ubuntu-latest=catthehacker/ubuntu:act-latest \
-              --pull=false \
-              --env EXPECT_PIPELINES="${{ matrix.case.expect_pipelines }}" \
-              --env EXPECT_PROFILES="${{ matrix.case.expect_profiles }}" \
-              --env EXPECT_TESTS="${{ matrix.case.expect_tests }}" \
-              --env EXPECT_GROUPS="${{ matrix.case.expect_groups }}" \
-              --env EXPECT_KAFKA="${{ matrix.case.expect_kafka }}" \
-              --env EXPECT_KUBE="${{ matrix.case.expect_kube }}" \
-              --env EXPECT_ARCHITECTURE="${{ matrix.case.expect_architecture }}" \
-              --env EXPECT_AGENT="${{ matrix.case.expect_agent }}" \
-              --env EXPECT_STRIMZI_FEATURE_GATES="${{ matrix.case.expect_strimzi_feature_gates }}" \
-              --env EXPECT_STRIMZI_RBAC_SCOPE="${{ matrix.case.expect_strimzi_rbac_scope }}" \
-              --env EXPECT_CLUSTER_OPERATOR_INSTALL_TYPE="${{ matrix.case.expect_cluster_operator_install_type }}" \
-              --env EXPECT_PARALLEL="${{ matrix.case.expect_parallel }}" \
-              --env EXPECT_SHOULD_RUN="${{ matrix.case.expect_should_run }}" \
-              --env EXPECT_RELEASE="${{ matrix.case.expect_release }}"
+          set -e
+          
+          SCENARIOS_FILE=".github/tests/scenarios/parse-comment.yaml"
+          WORKFLOW=".github/tests/workflows/parse-comment-template.yaml"
+          
+          echo "🧪 Running parse-comment action tests..."
+          echo "📁 Loading scenarios from: $SCENARIOS_FILE"
+          
+          # Get total number of scenarios
+          TOTAL=$(yq '.scenarios | length' "$SCENARIOS_FILE")
+          echo "📊 Found $TOTAL test scenarios"
+          echo
+          
+          # Loop through each scenario
+          for i in $(seq 0 $((TOTAL - 1))); do
+            # Extract scenario details using yq
+            id=$(yq ".scenarios[$i].id" "$SCENARIOS_FILE")
+            description=$(yq ".scenarios[$i].description" "$SCENARIOS_FILE")
+            event=$(yq ".scenarios[$i].event" "$SCENARIOS_FILE")
+            fixture=$(yq ".scenarios[$i].fixture" "$SCENARIOS_FILE")
+            
+            echo "───────────────────────────────────────"
+            echo "🔍 Scenario $((i + 1))/$TOTAL: $id"
+            echo "   Description: $description"
+            echo "   Event: $event"
+            echo "   Fixture: $fixture"
+            
+            # Build environment variables from expectations
+            env_args=""
+            
+            # Get all expectation keys and build env vars
+            expectation_keys=$(yq ".scenarios[$i].expectations | keys | .[]" "$SCENARIOS_FILE")
+            for key in $expectation_keys; do
+              value=$(yq ".scenarios[$i].expectations.$key" "$SCENARIOS_FILE")
+              env_key="EXPECT_$(echo "$key" | tr '[:lower:]' '[:upper:]')"
+              env_args="$env_args --env $env_key=\"$value\""
+            done
+            
+            # Run act with the scenario
+            echo "▶️  Running test..."
+            
+            if eval "act '$event' -W '$WORKFLOW' -e '$fixture' -P ubuntu-latest=catthehacker/ubuntu:act-latest --pull=false $env_args"; then
+              echo "✅ $id passed"
+            else
+              echo "❌ $id failed"
+              exit 1
+            fi
+            echo
+          done
+          
+          echo "───────────────────────────────────────"
+          echo "🎉 All $TOTAL parse-comment scenarios passed!"
+
+  # Future: Add other action tests here as separate jobs
+  # Example:
+  # test-check-permissions:
+  #   needs: [lint]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Test check-permissions scenarios
+  #       run: |
+  #         # Load from .github/tests/scenarios/check-permissions.yaml
+  #         # Similar loop structure as above
