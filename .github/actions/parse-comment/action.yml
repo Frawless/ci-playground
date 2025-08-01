@@ -185,8 +185,9 @@ runs:
           if echo "$COMMENT_LOWER" | grep -q "agent="; then
             AGENT_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*agent=\([^ ]*\).*/\1/p')
           fi
-          if echo "$COMMENT_LOWER" | grep -q "strimzi_feature_gates="; then
-            FG_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*strimzi_feature_gates=\([^ ]*\).*/\1/p')
+          # Use COMMENT to get feature gates config because it is case sensitive
+          if echo "$COMMENT" | grep -q "strimzi_feature_gates="; then
+            FG_VALUE=$(echo "$COMMENT" | sed -n 's/.*strimzi_feature_gates=\([^ ]*\).*/\1/p')
           fi
           if echo "$COMMENT_LOWER" | grep -q "strimzi_rbac_scope="; then
             RBAC_VALUE=$(echo "$COMMENT_LOWER" | sed -n 's/.*strimzi_rbac_scope=\([^ ]*\).*/\1/p')
