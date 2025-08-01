@@ -28,6 +28,7 @@ jobs:
         case:
           # ─── Scenario 1 ──────────────────────────────
           - id: comment-pipeline-only
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_1.json
             expect_pipelines: 'regression,upgrade'
             expect_profiles: ''
@@ -42,6 +43,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 2 ──────────────────────────────
           - id: comment-profile-only
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_2.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands'
@@ -56,6 +58,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 3 ──────────────────────────────
           - id: comment-additional-params
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_3.json
             # custom pipeline uses profiles
             expect_pipelines: ''
@@ -74,6 +77,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 4 ──────────────────────────────
           - id: comment-pipeline-and-profile
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_4.json
             expect_pipelines: 'regression,upgrade'
             expect_profiles: ''
@@ -87,6 +91,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 5 ──────────────────────────────
           - id: comment-pipeline-and-profile
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_5.json
             # pipelines has higher priority than profiles
             expect_pipelines: 'regression,upgrade'
@@ -101,6 +106,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 6: Strimzi-specific parameters ─────
           - id: comment-strimzi-params
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_6.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
@@ -116,6 +122,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 7: Basic trigger without parameters ───
           - id: comment-basic-trigger
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_7.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
@@ -130,6 +137,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 8: Empty pipeline value fallback ──────
           - id: comment-empty-pipeline
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_8.json
             expect_pipelines: 'regression,upgrade'
             expect_profiles: ''
@@ -143,6 +151,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 9: Non-triggering comment ────────────
           - id: comment-no-trigger
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_9.json
             expect_pipelines: ''
             expect_profiles: ''
@@ -157,6 +166,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 10: Case insensitive trigger ──────────
           - id: comment-case-insensitive
+            event: issue_comment
             fixture: .github/tests/events/issue_comment_10.json
             expect_pipelines: 'regression,upgrade'
             expect_profiles: ''
@@ -171,6 +181,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 11 ──────────────────────────────
           - id: dispatch
+            event: workflow_dispatch
             fixture: .github/tests/events/dispatch_default.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands,azp_kraft_upgrade'
@@ -179,6 +190,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 12: Custom workflow_dispatch ──────────
           - id: dispatch-custom
+            event: workflow_dispatch
             fixture: .github/tests/events/dispatch_custom.json
             expect_pipelines: ''
             expect_profiles: 'custom-profile-1,custom-profile-2'
@@ -189,6 +201,7 @@ jobs:
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 13: Empty workflow_dispatch ───────────
           - id: dispatch-empty
+            event: workflow_dispatch
             fixture: .github/tests/events/dispatch_empty.json
             expect_pipelines: ''
             expect_profiles: ''
@@ -210,7 +223,7 @@ jobs:
       - name: Smoke test – ${{ matrix.case.id }}
         # `act` itself is a plain shell command, so this step only needs `run:`
         run: |
-          act -W "${{ matrix.case.workflow }}" \
+          act "${{ matrix.case.event }}" -W "${{ matrix.case.workflow }}" \
               -e "${{ matrix.case.fixture }}" \
               -P ubuntu-latest=catthehacker/ubuntu:act-latest \
               --pull=false \
