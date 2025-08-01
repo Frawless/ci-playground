@@ -1,4 +1,5 @@
 {
+  "action": "workflow_dispatch",
   "event_name": "workflow_dispatch",
   "inputs": {
     "profile": "custom-profile-1,custom-profile-2",

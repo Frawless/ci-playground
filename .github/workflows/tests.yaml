@@ -39,7 +39,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 2 ──────────────────────────────
           - id: comment-profile-only
@@ -54,7 +54,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 3 ──────────────────────────────
           - id: comment-additional-params
@@ -73,7 +73,7 @@ jobs:
             expect_kube: '1.33.1'
             expect_architecture: 'arm64'
             expect_agent: 'strimzi-agent'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 4 ──────────────────────────────
           - id: comment-pipeline-and-profile
@@ -87,7 +87,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 5 ──────────────────────────────
           - id: comment-pipeline-and-profile
@@ -102,7 +102,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 6: Strimzi-specific parameters ─────
           - id: comment-strimzi-params
@@ -118,7 +118,7 @@ jobs:
             expect_cluster_operator_install_type: 'helm'
             expect_should_run: 'true'
             expect_parallel: '4'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 7: Basic trigger without parameters ───
           - id: comment-basic-trigger
@@ -133,7 +133,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 8: Empty pipeline value fallback ──────
           - id: comment-empty-pipeline
@@ -147,7 +147,7 @@ jobs:
             expect_strimzi_feature_gates: '+DummyFeatureGate'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 9: Non-triggering comment ────────────
           - id: comment-no-trigger
@@ -162,7 +162,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'false'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 10: Case insensitive trigger ──────────
           - id: comment-case-insensitive
@@ -177,7 +177,7 @@ jobs:
             expect_strimzi_rbac_scope: 'CLUSTER'
             expect_cluster_operator_install_type: 'yaml'
             expect_should_run: 'true'
-            expected_release: 'latest'
+            expect_release: 'latest'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 11 ──────────────────────────────
           - id: dispatch
@@ -185,8 +185,12 @@ jobs:
             fixture: .github/tests/events/dispatch_default.json
             expect_pipelines: ''
             expect_profiles: 'operators,operands,azp_kraft_upgrade'
+            expect_strimzi_feature_gates: '+DummyFeatureGate'
+            expect_strimzi_rbac_scope: 'CLUSTER'
+            expect_cluster_operator_install_type: 'yaml'
             expected_kafka: '4.1.0'
-            expected_release: '0.48.0'
+            expect_release: '0.48.0'
+            expect_should_run: 'true'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 12: Custom workflow_dispatch ──────────
           - id: dispatch-custom
@@ -194,21 +198,29 @@ jobs:
             fixture: .github/tests/events/dispatch_custom.json
             expect_pipelines: ''
             expect_profiles: 'custom-profile-1,custom-profile-2'
+            expect_strimzi_feature_gates: '+DummyFeatureGate'
+            expect_strimzi_rbac_scope: 'CLUSTER'
+            expect_cluster_operator_install_type: 'yaml'
             expect_tests: ''
             expect_groups: ''
             expect_kafka: '3.5.0'
             expect_release: '1.0.0'
+            expect_should_run: 'true'
             workflow: .github/tests/workflows/parse-comment-template.yaml
           # ─── Scenario 13: Empty workflow_dispatch ───────────
           - id: dispatch-empty
             event: workflow_dispatch
             fixture: .github/tests/events/dispatch_empty.json
             expect_pipelines: ''
-            expect_profiles: ''
+            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
+            expect_strimzi_feature_gates: '+DummyFeatureGate'
+            expect_strimzi_rbac_scope: 'CLUSTER'
+            expect_cluster_operator_install_type: 'yaml'
             expect_tests: ''
             expect_groups: ''
             expect_kafka: 'latest'
             expect_release: 'latest'
+            expect_should_run: 'true'
             workflow: .github/tests/workflows/parse-comment-template.yaml
     steps:
       - uses: actions/checkout@v4
