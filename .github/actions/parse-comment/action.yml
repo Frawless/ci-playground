@@ -76,6 +76,7 @@ runs:
       id: should_run
       shell: bash
       run: |
+        echo "EventName: ${{ github.event_name }}"
         if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           SHOULD_RUN_VALUE="true"
         elif echo "${{ github.event.comment.body }}" | grep -qiE '/gha\s+run'; then
@@ -138,9 +139,9 @@ runs:
         # Default values
         DEFAULT_PIPELINES="regression,upgrade"
         DEFAULT_PROFILES="operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade"
-        DEFAULT_FEATURE_GATES="false"
+        DEFAULT_FEATURE_GATES="+DummyFeatureGate"
         DEFAULT_RBAC_SCOPE="CLUSTER"
-        DEFAULT_OPERATOR_INSTALL_TYPE="bundle"
+        DEFAULT_OPERATOR_INSTALL_TYPE="yaml"
         
         PIPELINE_LIST=""
         PROFILE_LIST=""

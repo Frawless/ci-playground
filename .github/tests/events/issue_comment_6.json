@@ -2,7 +2,7 @@
   "event_name": "issue_comment",
   "action": "created",
   "comment": {
-    "body": "/gha run strimzi_feature_gates=true strimzi_rbac_scope=NAMESPACE cluster_operator_install_type=helm parallel=4"
+    "body": "/gha run strimzi_feature_gates=+SomeNewFeatureGate strimzi_rbac_scope=NAMESPACE cluster_operator_install_type=helm parallel=4"
   },
   "issue": {
     "number": 42,
