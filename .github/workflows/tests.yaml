@@ -82,6 +82,76 @@ jobs:
             expected_kafka: '4.1.0'
             expected_release: '0.48.0'
             workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 7: Strimzi-specific parameters ─────
+          - id: comment-strimzi-params
+            fixture: .github/tests/events/issue_comment_6.json
+            expect_pipelines: ''
+            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: 'latest'
+            expect_strimzi_feature_gates: 'true'
+            expect_strimzi_rbac_scope: 'NAMESPACE'
+            expect_cluster_operator_install_type: 'helm'
+            expect_parallel: '4'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 8: Basic trigger without parameters ───
+          - id: comment-basic-trigger
+            fixture: .github/tests/events/issue_comment_7.json
+            expect_pipelines: ''
+            expect_profiles: 'operators,operands,brokers-and-security,azp_kraft_upgrade,azp_kafka_upgrade'
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: 'latest'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 9: Empty pipeline value fallback ──────
+          - id: comment-empty-pipeline
+            fixture: .github/tests/events/issue_comment_8.json
+            expect_pipelines: 'regression,upgrade'
+            expect_profiles: ''
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: 'latest'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 10: Non-triggering comment ────────────
+          - id: comment-no-trigger
+            fixture: .github/tests/events/issue_comment_9.json
+            expect_pipelines: ''
+            expect_profiles: ''
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: ''
+            expect_should_run: 'false'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 11: Case insensitive trigger ──────────
+          - id: comment-case-insensitive
+            fixture: .github/tests/events/issue_comment_10.json
+            expect_pipelines: 'regression,upgrade'
+            expect_profiles: ''
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: 'latest'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 12: Custom workflow_dispatch ──────────
+          - id: dispatch-custom
+            fixture: .github/tests/events/dispatch_custom.json
+            expect_pipelines: ''
+            expect_profiles: 'custom-profile-1,custom-profile-2'
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: '3.5.0'
+            expect_release: '1.0.0'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
+          # ─── Scenario 13: Empty workflow_dispatch ───────────
+          - id: dispatch-empty
+            fixture: .github/tests/events/dispatch_empty.json
+            expect_pipelines: ''
+            expect_profiles: ''
+            expect_tests: ''
+            expect_groups: ''
+            expect_kafka: 'latest'
+            expect_release: 'latest'
+            workflow: .github/tests/workflows/parse-comment-template.yaml
     steps:
       - uses: actions/checkout@v4
 
@@ -106,4 +176,10 @@ jobs:
               --env EXPECT_KAFKA="${{ matrix.case.expect_kafka }}" \
               --env EXPECT_KUBE="${{ matrix.case.expect_kube }}" \
               --env EXPECT_ARCHITECTURE="${{ matrix.case.expect_architecture }}" \
-              --env EXPECT_AGENT="${{ matrix.case.expect_agent }}"
+              --env EXPECT_AGENT="${{ matrix.case.expect_agent }}" \
+              --env EXPECT_STRIMZI_FEATURE_GATES="${{ matrix.case.expect_strimzi_feature_gates }}" \
+              --env EXPECT_STRIMZI_RBAC_SCOPE="${{ matrix.case.expect_strimzi_rbac_scope }}" \
+              --env EXPECT_CLUSTER_OPERATOR_INSTALL_TYPE="${{ matrix.case.expect_cluster_operator_install_type }}" \
+              --env EXPECT_PARALLEL="${{ matrix.case.expect_parallel }}" \
+              --env EXPECT_SHOULD_RUN="${{ matrix.case.expect_should_run }}" \
+              --env EXPECT_RELEASE="${{ matrix.case.expect_release }}"
