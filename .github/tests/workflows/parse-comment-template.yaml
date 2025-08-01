@@ -1,6 +1,24 @@
 name: Parse-comment template
 
-on: [ push ]
+on:
+  push:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: "Release version to test (i.e. 'latest', '0.46.0')"
+        required: false
+        default: "latest"
+      kafkaVersion:
+        description: "Kafka version. e.g. '4.0.0' or 'latest'"
+        required: false
+        default: "latest"
+      profile:
+        description: "Comma-separated or single profile name(s)"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   sut:
