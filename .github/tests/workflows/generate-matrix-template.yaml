@@ -1,0 +1,118 @@
+name: Generate-matrix template
+
+on:
+  workflow_dispatch:
+    inputs:
+      pipelines:
+        description: "Comma-separated list of pipelines"
+        required: false
+        default: ""
+      profiles:
+        description: "Comma-separated list of profiles"
+        required: false
+        default: ""
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Test the generate-matrix action
+      - id: generate-matrix
+        uses: ./.github/actions/generate-matrix
+        with:
+          pipelines: ${{ github.event.inputs.pipelines }}
+          profiles: ${{ github.event.inputs.profiles }}
+
+      # Validate the generated matrix
+      - name: Validate matrix generation
+        shell: bash
+        env:
+          EXPECT_MATRIX_LENGTH: ${{ env.EXPECT_MATRIX_LENGTH }}
+          EXPECT_CONTAINS_PIPELINE: ${{ env.EXPECT_CONTAINS_PIPELINE }}
+          EXPECT_CONTAINS_PROFILE: ${{ env.EXPECT_CONTAINS_PROFILE }}
+          EXPECT_ALL_ARCH: ${{ env.EXPECT_ALL_ARCH }}
+          EXPECT_JOB_NAME_CONTAINS: ${{ env.EXPECT_JOB_NAME_CONTAINS }}
+        run: |
+          set -e
+          
+          MATRIX='${{ steps.generate-matrix.outputs.matrix }}'
+          
+          echo "::group::Generated Matrix"
+          echo "$MATRIX" | jq '.'
+          echo "::endgroup::"
+          
+          # Basic validation - check if matrix is valid JSON
+          if ! echo "$MATRIX" | jq empty 2>/dev/null; then
+            echo "❌ Generated matrix is not valid JSON"
+            exit 1
+          fi
+          
+          MATRIX_LENGTH=$(echo "$MATRIX" | jq 'length')
+          echo "📊 Matrix contains $MATRIX_LENGTH items"
+          
+          # Validate expected matrix length
+          if [[ -n "$EXPECT_MATRIX_LENGTH" && "$MATRIX_LENGTH" != "$EXPECT_MATRIX_LENGTH" ]]; then
+            echo "❌ Expected matrix length $EXPECT_MATRIX_LENGTH, got $MATRIX_LENGTH"
+            exit 1
+          fi
+          
+          # Check if specific pipeline exists
+          if [[ -n "$EXPECT_CONTAINS_PIPELINE" ]]; then
+            if ! echo "$MATRIX" | jq -e ".[] | select(.pipeline == \"$EXPECT_CONTAINS_PIPELINE\")" > /dev/null; then
+              echo "❌ Matrix does not contain expected pipeline: $EXPECT_CONTAINS_PIPELINE"
+              exit 1
+            fi
+            echo "✅ Matrix contains pipeline: $EXPECT_CONTAINS_PIPELINE"
+          fi
+          
+          # Check if specific profile exists
+          if [[ -n "$EXPECT_CONTAINS_PROFILE" ]]; then
+            if ! echo "$MATRIX" | jq -e ".[] | select(.profile == \"$EXPECT_CONTAINS_PROFILE\")" > /dev/null; then
+              echo "❌ Matrix does not contain expected profile: $EXPECT_CONTAINS_PROFILE"
+              exit 1
+            fi
+            echo "✅ Matrix contains profile: $EXPECT_CONTAINS_PROFILE"
+          fi
+          
+          # Check architecture coverage
+          if [[ -n "$EXPECT_ALL_ARCH" ]]; then
+            ARCHES=$(echo "$MATRIX" | jq -r '.[].arch' | sort -u)
+            if [[ "$EXPECT_ALL_ARCH" == "true" ]]; then
+              if ! echo "$ARCHES" | grep -q "amd64" || ! echo "$ARCHES" | grep -q "arm64"; then
+                echo "❌ Expected both amd64 and arm64 architectures"
+                echo "Found architectures: $ARCHES"
+                exit 1
+              fi
+              echo "✅ Matrix contains both amd64 and arm64 architectures"
+            fi
+          fi
+          
+          # Check job name patterns
+          if [[ -n "$EXPECT_JOB_NAME_CONTAINS" ]]; then
+            JOB_NAMES=$(echo "$MATRIX" | jq -r '.[].jobName')
+            if ! echo "$JOB_NAMES" | grep -q "$EXPECT_JOB_NAME_CONTAINS"; then
+              echo "❌ No job name contains: $EXPECT_JOB_NAME_CONTAINS"
+              echo "Job names: $JOB_NAMES"
+              exit 1
+            fi
+            echo "✅ Found job name containing: $EXPECT_JOB_NAME_CONTAINS"
+          fi
+          
+          # Validate all matrix items have required fields
+          REQUIRED_FIELDS=("agent" "arch" "pipeline" "jobName" "timeout")
+          for i in $(seq 0 $((MATRIX_LENGTH - 1))); do
+            for field in "${REQUIRED_FIELDS[@]}"; do
+              if ! echo "$MATRIX" | jq -e ".[$i].$field" > /dev/null; then
+                echo "❌ Matrix item $i missing required field: $field"
+                exit 1
+              fi
+            done
+          done
+          
+          # Show sample job names for debugging
+          echo "📝 Generated job names:"
+          echo "$MATRIX" | jq -r '.[].jobName' | head -5
+          
+          echo "✅ Matrix generation validation passed"

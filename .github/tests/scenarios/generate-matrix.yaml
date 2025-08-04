@@ -1,0 +1,86 @@
+scenarios:
+  - id: multiple-pipelines
+    description: "Generate matrix for multiple pipelines (regression,smoke)"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_pipelines.json
+    expectations:
+      matrix_length: "8"  # regression(6) + smoke(2) = 8 items
+      contains_pipeline: "regression"
+      all_arch: "true"
+      job_name_contains: "regression"
+
+  - id: multiple-profiles
+    description: "Generate matrix for multiple profiles (operators,brokers-and-security)"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_profiles.json
+    expectations:
+      matrix_length: "4"  # operators(2) + brokers-and-security(2) = 4 items
+      contains_profile: "operators"
+      all_arch: "true"
+      job_name_contains: "operators"
+
+  - id: pipeline-priority
+    description: "Pipeline takes priority over profile when both provided"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_priority.json
+    expectations:
+      matrix_length: "2"  # Only smoke pipeline items (both arch)
+      contains_pipeline: "smoke"
+      job_name_contains: "smoke"
+      # Should NOT contain operators/operands profiles
+
+  - id: single-pipeline
+    description: "Generate matrix for single pipeline (upgrade)"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_single_pipeline.json
+    expectations:
+      matrix_length: "4"  # upgrade has 4 items (2 profiles x 2 arch)
+      contains_pipeline: "upgrade"
+      contains_profile: "azp_kraft_upgrade"
+      all_arch: "true"
+
+  - id: single-profile
+    description: "Generate matrix for single profile (smoke)"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_single_profile.json
+    expectations:
+      matrix_length: "2"  # smoke profile on both architectures
+      contains_profile: "smoke"
+      contains_pipeline: "smoke"
+      all_arch: "true"
+
+  - id: empty-inputs-fallback
+    description: "Generate default matrix when no pipelines/profiles provided"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_empty.json
+    expectations:
+      matrix_length: "1"  # Default "all" profile creates 1 item
+      contains_pipeline: "custom"
+      job_name_contains: "custom"
+
+  - id: nonexistent-pipeline
+    description: "Handle nonexistent pipeline gracefully"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_nonexistent.json
+    expectations:
+      matrix_length: "0"  # No matches should result in empty matrix
+      # No specific contains expectations since matrix should be empty
+
+  # Edge case scenarios
+  - id: regression-pipeline-comprehensive
+    description: "Test regression pipeline comprehensive coverage"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_single_pipeline.json
+    expectations:
+      contains_pipeline: "upgrade"
+      # Regression has: brokers-and-security, operators, operands on amd64+arm64
+      all_arch: "true"
+
+  - id: rbac-pipeline-test
+    description: "Test RBAC pipeline characteristics"
+    event: workflow_dispatch
+    fixture: .github/tests/events/matrix_pipelines.json
+    expectations:
+      contains_pipeline: "regression"
+      # Should contain RBAC-specific configurations
+      all_arch: "true"

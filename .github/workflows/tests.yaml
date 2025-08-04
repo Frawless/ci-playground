@@ -177,4 +177,81 @@ jobs:
           echo "🎉 All $TOTAL check-permissions scenarios completed!"
           echo "   Action structure and input handling validated ✅"
 
+  test-generate-matrix:
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          # Install act for workflow testing
+          curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+          sudo install -m 0755 ./bin/act /usr/local/bin/act
+          
+          # Install yq for YAML processing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      # Test all generate-matrix scenarios
+      - name: Test generate-matrix action scenarios
+        run: |
+          set -e
+          
+          SCENARIOS_FILE=".github/tests/scenarios/generate-matrix.yaml"
+          WORKFLOW=".github/tests/workflows/generate-matrix-template.yaml"
+          
+          echo "🧮 Running generate-matrix action tests..."
+          echo "📁 Loading scenarios from: $SCENARIOS_FILE"
+          
+          # Get total number of scenarios
+          TOTAL=$(yq '.scenarios | length' "$SCENARIOS_FILE")
+          echo "📊 Found $TOTAL test scenarios"
+          echo
+          
+          # Loop through each scenario
+          for i in $(seq 0 $((TOTAL - 1))); do
+            # Extract scenario details using yq
+            id=$(yq ".scenarios[$i].id" "$SCENARIOS_FILE")
+            description=$(yq ".scenarios[$i].description" "$SCENARIOS_FILE")
+            event=$(yq ".scenarios[$i].event" "$SCENARIOS_FILE")
+            fixture=$(yq ".scenarios[$i].fixture" "$SCENARIOS_FILE")
+            
+            echo "───────────────────────────────────────"
+            echo "🔍 Scenario $((i + 1))/$TOTAL: $id"
+            echo "   Description: $description"
+            echo "   Event: $event"
+            echo "   Fixture: $fixture"
+            
+            # Build environment variables from expectations
+            env_args=""
+            
+            # Get all expectation keys and build env vars
+            expectation_keys=$(yq ".scenarios[$i].expectations | keys | .[]" "$SCENARIOS_FILE")
+            for key in $expectation_keys; do
+              value=$(yq ".scenarios[$i].expectations.$key" "$SCENARIOS_FILE")
+              env_key="EXPECT_$(echo "$key" | tr '[:lower:]' '[:upper:]')"
+              env_args="$env_args --env $env_key=\"$value\""
+            done
+            
+            # Run act with the scenario
+            echo "▶️  Running test..."
+            
+            token_args="-s GITHUB_TOKEN=\"${{ secrets.GITHUB_TOKEN }}\""
+            
+            if eval "act '$event' -W '$WORKFLOW' -e '$fixture' -P ubuntu-latest=catthehacker/ubuntu:act-latest --pull=false $env_args $token_args"; then
+              echo "✅ $id completed"
+            else
+              echo "❌ $id failed"
+              exit 1
+            fi
+            echo
+          done
+          
+          echo "───────────────────────────────────────"
+          echo "🎉 All $TOTAL generate-matrix scenarios passed!"
+          echo "   Matrix generation logic validated ✅"
+
   # Future: Add other action tests here as separate jobs
