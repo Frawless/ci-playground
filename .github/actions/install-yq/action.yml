@@ -10,7 +10,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install yq
-      shell: bash
-      run: |
-        .azure/scripts/install_yq.sh "${{ inputs.architecture }}"
+    - name: 'Setup yq'
+      uses: dcarbone/install-yq-action@v1
+      with:
+        version: '${{ inputs.version }}'
+        download-compressed: '${{ inputs.download-compressed }}'
+        force: '${{ inputs.force }}'
