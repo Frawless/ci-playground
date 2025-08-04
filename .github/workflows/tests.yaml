@@ -157,7 +157,7 @@ jobs:
             echo "▶️  Running test..."
             
             # For real permission tests, pass GitHub token
-            token_args="-s GITHUB_TOKEN=\"$GITHUB_TOKEN\""
+            token_args="-s GITHUB_TOKEN=\"${{ secrets.GITHUB_TOKEN }}\""
             
             if eval "act '$event' -W '$WORKFLOW' -e '$fixture' -P ubuntu-latest=catthehacker/ubuntu:act-latest --pull=false $env_args $token_args"; then
               echo "✅ $id completed"
